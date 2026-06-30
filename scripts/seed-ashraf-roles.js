@@ -27,7 +27,7 @@ const ACCOUNTS = [
     email:         'ashraf@ankaa.om',
     password:      'Ashraf@Super2026',
     full_name:     'MD Ashraf',
-    role:          'super_admin',
+    role:          'admin',
     username:      'ashraf',
     employee_id:   'ANK-033',
     position_title:'ERP Project Lead – Super Admin',

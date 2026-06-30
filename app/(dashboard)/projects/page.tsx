@@ -1,7 +1,8 @@
 ﻿"use client"
 
 import * as React from "react"
-import { Plus, Rows, SquaresFour, Briefcase } from "@phosphor-icons/react"
+import { Plus, Rows, SquaresFour, Briefcase, ListChecks } from "@phosphor-icons/react"
+import Link from "next/link"
 import { PageHeader } from "@/components/ui/page-header"
 import { Button } from "@/components/ui/button"
 import { ProjectCard } from "@/components/projects/project-card"
@@ -100,7 +101,21 @@ export default function ProjectsPage() {
     {
       key: "end_date",
       header: "End",
-      render: (v) => (v ? formatDate(v as string) : "â€”"),
+      render: (v) => (v ? formatDate(v as string) : "—"),
+    },
+    {
+      key: "id",
+      header: "",
+      render: (v) => (
+        <Link href={`/tasks/list?board=${v}`}>
+          <button
+            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-[var(--radius-md)] transition-all hover:opacity-80"
+            style={{ background: "#EEF1F8", color: "#1B2A5E" }}
+          >
+            <ListChecks size={12} /> Tasks
+          </button>
+        </Link>
+      ),
     },
   ]
 
@@ -239,7 +254,14 @@ export default function ProjectsPage() {
                       </div>
                     ) : (
                       sectionProjects.map((p) => (
-                        <ProjectCard key={p.id} project={p} />
+                        <div key={p.id} className="flex flex-col gap-1">
+                          <ProjectCard project={p} />
+                          <Link href={`/tasks/list?board=${p.id}`}
+                            className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-[var(--radius-md)] transition-all hover:bg-[#EEF1F8] self-start"
+                            style={{ color: "#1B2A5E" }}>
+                            <ListChecks size={11} /> Open Tasks →
+                          </Link>
+                        </div>
                       ))
                     )}
                   </div>

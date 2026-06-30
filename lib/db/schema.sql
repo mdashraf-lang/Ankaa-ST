@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 -- ── leave_balances ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS leave_balances (
-  id                    TEXT PRIMARY KEY DEFAULT '',
+  id                    TEXT PRIMARY KEY,
   user_id               TEXT UNIQUE REFERENCES profiles(id) ON DELETE CASCADE,
   annual_leave_days     INTEGER DEFAULT 30,
   sick_leave_days       INTEGER DEFAULT 21,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS leave_balances (
 
 -- ── leave_requests ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS leave_requests (
-  id                              TEXT PRIMARY KEY DEFAULT '',
+  id                              TEXT PRIMARY KEY,
   user_id                         TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   start_date                      TEXT NOT NULL,
   end_date                        TEXT NOT NULL,
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS cost_centers (
 
 -- ── invoices ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS invoices (
-  id                    TEXT PRIMARY KEY DEFAULT '',
+  id                    TEXT PRIMARY KEY,
   user_id               TEXT NOT NULL REFERENCES profiles(id),
   name                  TEXT NOT NULL,
   amount                REAL,
@@ -237,14 +237,21 @@ CREATE TABLE IF NOT EXISTS org_chart (
   level                 TEXT
 );
 
--- ── projects (Kanban boards) ──────────────────────────────────────────────────
+-- ── projects (Kanban boards + ERP project tracking) ──────────────────────────
 CREATE TABLE IF NOT EXISTS projects (
-  id          TEXT PRIMARY KEY DEFAULT '',
-  name        TEXT NOT NULL,
-  description TEXT,
-  created_by  TEXT REFERENCES profiles(id) ON DELETE CASCADE,
-  created_at  TEXT,
-  updated_at  TEXT
+  id            TEXT PRIMARY KEY,
+  name          TEXT NOT NULL,
+  description   TEXT,
+  section       TEXT DEFAULT 'current',     -- current | expected | research | closing
+  status        TEXT DEFAULT 'in_progress', -- pending | in_progress | completed
+  progress      INTEGER DEFAULT 0,          -- 0–100
+  priority      TEXT DEFAULT 'medium',      -- low | medium | high | critical
+  start_date    TEXT,
+  end_date      TEXT,
+  department_id TEXT,
+  created_by    TEXT REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at    TEXT,
+  updated_at    TEXT
 );
 
 CREATE TABLE IF NOT EXISTS project_members (
@@ -253,6 +260,7 @@ CREATE TABLE IF NOT EXISTS project_members (
   user_id    TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   role       TEXT DEFAULT 'member',
   joined_at  TEXT,
+  created_at TEXT,
   UNIQUE (project_id, user_id)
 );
 
@@ -360,7 +368,7 @@ CREATE TABLE IF NOT EXISTS todos (
 
 -- ── roster_attendance ─────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS roster_attendance (
-  id            TEXT PRIMARY KEY DEFAULT '',
+  id            TEXT PRIMARY KEY,
   user_id       TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   date          TEXT NOT NULL,
   status        TEXT NOT NULL,
@@ -1092,3 +1100,100 @@ ALTER TABLE fleet_pilots ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE fleet_pilots ADD COLUMN IF NOT EXISTS address TEXT;
 
 ALTER TABLE fleet_drones ADD COLUMN IF NOT EXISTS registration_date TEXT;
+
+-- ── ERP project tracking columns (Phase 18 addition) ─────────────────────────
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS section       TEXT DEFAULT 'current';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS status        TEXT DEFAULT 'in_progress';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS progress      INTEGER DEFAULT 0;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS priority      TEXT DEFAULT 'medium';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS start_date    TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS end_date      TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id TEXT;
+
+-- ── project_members created_at (missed in original schema) ──────────────────
+ALTER TABLE project_members ADD COLUMN IF NOT EXISTS created_at TEXT;
+
+-- ── Drop broken DEFAULT '' from primary key columns ───────────────────────────
+-- Explicit id (randomUUID) is required on every INSERT. Never rely on DEFAULT.
+ALTER TABLE projects           ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE project_lists      ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE project_cards      ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE project_members    ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE project_card_members ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE invoices           ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE leave_requests     ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE leave_balances     ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE roster_attendance  ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE notifications      ALTER COLUMN id DROP DEFAULT;
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- PERFORMANCE INDEXES
+-- ═══════════════════════════════════════════════════════════════════════════════
+CREATE INDEX IF NOT EXISTS idx_leave_requests_user_id  ON leave_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_leave_requests_status   ON leave_requests(status);
+CREATE INDEX IF NOT EXISTS idx_leave_requests_dates    ON leave_requests(start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_roster_attendance_date  ON roster_attendance(date);
+CREATE INDEX IF NOT EXISTS idx_roster_attendance_user  ON roster_attendance(user_id);
+CREATE INDEX IF NOT EXISTS idx_project_cards_list      ON project_cards(list_id);
+CREATE INDEX IF NOT EXISTS idx_project_cards_project   ON project_cards(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_lists_project   ON project_lists(project_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_user           ON invoices(user_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_status         ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_device_raw_log          ON device_attendance_raw(import_log_id);
+CREATE INDEX IF NOT EXISTS idx_device_raw_date         ON device_attendance_raw(date);
+CREATE INDEX IF NOT EXISTS idx_todos_user              ON todos(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user      ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_assets_status           ON assets(status);
+CREATE INDEX IF NOT EXISTS idx_assets_category         ON assets(category_id);
+CREATE INDEX IF NOT EXISTS idx_fleet_vehicles_status   ON fleet_vehicles(status);
+CREATE INDEX IF NOT EXISTS idx_projects_section        ON projects(section);
+CREATE INDEX IF NOT EXISTS idx_projects_status         ON projects(status);
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- PHASE 18 — Device Integration (Face Recognition / iVMS-4200)
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+-- Maps HIKVISION device numeric Person IDs to ERP employee records
+CREATE TABLE IF NOT EXISTS device_id_mapping (
+  id          TEXT PRIMARY KEY,
+  device_id   INTEGER NOT NULL,
+  device_name TEXT,
+  employee_id TEXT,
+  profile_id  TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  is_active   INTEGER DEFAULT 1,
+  created_at  TEXT,
+  updated_at  TEXT,
+  UNIQUE (device_id)
+);
+
+-- Stores every raw row from face-device XLS exports (staging table)
+CREATE TABLE IF NOT EXISTS device_attendance_raw (
+  id            TEXT PRIMARY KEY,
+  import_log_id TEXT REFERENCES device_import_log(id) ON DELETE SET NULL,
+  device_name   TEXT,
+  department    TEXT,
+  date          TEXT,
+  shift         TEXT,
+  timetable     TEXT,
+  check_in      TEXT,
+  check_out     TEXT,
+  profile_id    TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  employee_id   TEXT,
+  full_name     TEXT,
+  matched       INTEGER DEFAULT 0,
+  created_at    TEXT
+);
+
+-- Tracks every XLS import batch from the face recognition device
+CREATE TABLE IF NOT EXISTS device_import_log (
+  id            TEXT PRIMARY KEY,
+  imported_by   TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  filename      TEXT,
+  total_records INTEGER DEFAULT 0,
+  matched       INTEGER DEFAULT 0,
+  unmatched     INTEGER DEFAULT 0,
+  skipped       INTEGER DEFAULT 0,
+  date_from     TEXT,
+  date_to       TEXT,
+  created_at    TEXT
+);

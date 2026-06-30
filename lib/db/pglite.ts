@@ -318,32 +318,26 @@ class QueryBuilder<T = Record<string, unknown>> {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function simplifySelectCols(cols: string): string {
-  // Strip Supabase join syntax: `profiles:user_id(id, name)`, `table!inner(...)`.
-  // Splitting on ',' leaks inner column names and leaves dangling ')' fragments.
-  // Fix: collect any word that directly precedes '(' (the join relation name),
-  // remove all balanced paren groups, then filter bad tokens.
   if (!cols || cols === '*') return '*'
 
-  // Words that are join relation names (appear directly before '(')
-  const joinNames = new Set<string>()
-  const prefixRe = /(\w+)\s*\(/g
-  let m: RegExpExecArray | null
-  while ((m = prefixRe.exec(cols)) !== null) joinNames.add(m[1])
+  // Split at top-level commas only (not inside parentheses).
+  // This correctly handles `user_id, role, profiles:user_id(id, email)` —
+  // the join token `profiles:user_id(...)` becomes one top-level token and
+  // the plain column `user_id` is NOT confused with the FK join key.
+  const tokens: string[] = []
+  let depth = 0
+  let current = ''
+  for (const ch of cols) {
+    if (ch === '(')                 { depth++; current += ch }
+    else if (ch === ')')            { depth--; current += ch }
+    else if (ch === ',' && depth === 0) { tokens.push(current.trim()); current = '' }
+    else                            { current += ch }
+  }
+  if (current.trim()) tokens.push(current.trim())
 
-  // Remove balanced paren groups iteratively (innermost first)
-  let s = cols
-  let prev = ''
-  while (s !== prev) { prev = s; s = s.replace(/\([^()]*\)/g, '') }
-
-  const cleaned = s
-    .split(',')
-    .map(c => c.trim())
-    .filter(c =>
-      c.length > 0 &&
-      !c.includes('(') && !c.includes(')') &&
-      !c.includes(':') && !c.includes('!') &&
-      !joinNames.has(c)
-    )
+  // Keep only simple column names — drop anything with '(' (join), ':' (alias/FK), or '!' (FK override).
+  const cleaned = tokens
+    .filter(t => t.length > 0 && !t.includes('(') && !t.includes(':') && !t.includes('!'))
     .join(', ')
   return cleaned || '*'
 }

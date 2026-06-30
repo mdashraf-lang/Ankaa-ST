@@ -16,7 +16,6 @@ import type { Column } from "@/components/ui/data-table"
 type TabKey = "general" | "departments" | "roles" | "holidays" | "audit"
 
 const USER_ROLES = [
-  "super_admin",
   "admin",
   "ceo",
   "md",
@@ -321,7 +320,6 @@ export default function AdminPage() {
                         </td>
                         {USER_ROLES.map((role) => {
                           const granted =
-                            role === "super_admin" ||
                             role === "admin" ||
                             (role === "hr" &&
                               ["view_dashboard", "approve_leave", "manage_users"].includes(perm)) ||

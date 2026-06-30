@@ -92,7 +92,7 @@ const DEPT_ORDER = [
   'Tenders & Contracts', 'External',
 ]
 const ROLE_LABEL: Record<string, string> = {
-  super_admin: 'Super Admin', admin: 'Admin', md: 'MD', cto: 'CTO', coo: 'COO',
+  admin: 'Admin', md: 'MD', cto: 'CTO', coo: 'COO',
   hr: 'HR', finance: 'Finance', hod: 'HoD', team_member: 'Team Member',
   collaborator: 'Collaborator', trainee: 'Trainee',
 }
@@ -905,7 +905,7 @@ function NodeFormModal({ open, mode, initial, parentNode, allNodes, profiles, on
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function OrgChartPage() {
   const { user }    = useAuth()
-  const isAdmin     = ['super_admin', 'admin'].includes(user?.role ?? '')
+  const isAdmin     = user?.role === 'admin'
 
   const [nodes,      setNodes]      = React.useState<OrgNode[]>([])
   const [profiles,   setProfiles]   = React.useState<ProfileOption[]>([])

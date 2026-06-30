@@ -35,7 +35,7 @@ export default function DashboardLayout({
         <div
           className="flex flex-col flex-1 overflow-hidden"
           style={{
-            marginLeft: collapsed ? "56px" : "240px",
+            marginLeft: collapsed ? "60px" : "240px",
             transition: "margin 220ms cubic-bezier(0.16,1,0.3,1)",
           }}
         >

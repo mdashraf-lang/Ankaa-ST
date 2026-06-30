@@ -239,7 +239,7 @@ export default function LoginPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Login failed')
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } catch (err: unknown) {
       setErrors({ server: err instanceof Error ? err.message : 'Login failed' })
     } finally {

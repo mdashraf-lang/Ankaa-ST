@@ -5,6 +5,7 @@ import {
   Plus, Receipt, MagnifyingGlass, Pencil, Trash, X,
   CheckCircle, Clock, CurrencyDollar, Funnel,
   ArrowsDownUp, CaretDown, Warning, FileText,
+  Sparkle,
 } from "@phosphor-icons/react"
 import { toast }         from "sonner"
 import { PageHeader }    from "@/components/ui/page-header"
@@ -106,6 +107,51 @@ function InvoiceModal({ open, editing, costCenters, onClose, onSaved }: InvoiceM
   const [form,       setForm]       = React.useState<InvoiceForm>(BLANK_FORM)
   const [submitting, setSubmitting] = React.useState(false)
   const [error,      setError]      = React.useState<string | null>(null)
+
+  // ── AI fill ────────────────────────────────────────────────────────────────
+  const [aiText,     setAiText]     = React.useState("")
+  const [aiLoading,  setAiLoading]  = React.useState(false)
+  const [aiError,    setAiError]    = React.useState<string | null>(null)
+
+  async function handleAiFill() {
+    if (!aiText.trim()) return
+    setAiLoading(true); setAiError(null)
+    try {
+      const res = await fetch("/api/ai/extract-invoice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: aiText,
+          costCenters: costCenters.map(cc => cc.name),
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok || json.error) { setAiError(json.error ?? "AI failed"); return }
+      const r = json.result
+      const amt = parseFloat(r.amount) || 0
+      const cat = r.expense_category ?? "others"
+      setForm(f => ({
+        ...f,
+        name:             r.name             || f.name,
+        amount:           r.amount           || f.amount,
+        currency:         r.currency         || f.currency,
+        transaction_date: r.transaction_date || f.transaction_date,
+        expense_category: cat,
+        cost_center:      r.cost_center      || f.cost_center,
+        paid_by:          r.paid_by          || f.paid_by,
+        bill_number:      r.bill_number      || f.bill_number,
+        description:      r.description      || f.description,
+        status:           (r.status as "paid"|"unpaid") || f.status,
+        fuel_amount:           cat === "fuel"           ? String(amt) : "0",
+        materials_amount:      cat === "materials"      ? String(amt) : "0",
+        transportation_amount: cat === "transportation"  ? String(amt) : "0",
+        food_amount:           cat === "food"           ? String(amt) : "0",
+        others_amount:         cat === "others"         ? String(amt) : "0",
+      }))
+      setAiText("")
+    } catch { setAiError("Network error — try again") }
+    finally { setAiLoading(false) }
+  }
 
   React.useEffect(() => {
     if (open) {
@@ -226,6 +272,43 @@ function InvoiceModal({ open, editing, costCenters, onClose, onSaved }: InvoiceM
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
+        {/* ── AI Fill ──────────────────────────────────────────────────── */}
+        <div className="flex flex-col gap-2 p-3 rounded-[var(--radius-lg)] border-2"
+          style={{ borderColor: "#7C3AED30", background: "linear-gradient(135deg,#FAF5FF 0%,#F5F3FF 100%)" }}>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Sparkle size={14} weight="fill" style={{ color: "#7C3AED" }} />
+            <span className="text-xs font-bold" style={{ color: "#7C3AED" }}>AI Auto-Fill</span>
+            <span className="text-[10px] ml-1" style={{ color: "#A78BFA" }}>Describe your expense — AI fills the form</span>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={aiText}
+              onChange={e => setAiText(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleAiFill()}
+              placeholder="e.g. Paid 45 OMR for fuel at Shell on June 28, office card"
+              className="flex-1 h-9 px-3 text-xs rounded-[var(--radius-md)] border"
+              style={{ background: "white", borderColor: "#C4B5FD", color: "var(--text-primary)", outline: "none" }}
+              disabled={aiLoading}
+            />
+            <button
+              type="button"
+              onClick={handleAiFill}
+              disabled={aiLoading || !aiText.trim()}
+              className="flex items-center gap-1.5 h-9 px-3 rounded-[var(--radius-md)] text-xs font-bold transition-all disabled:opacity-40"
+              style={{ background: "#7C3AED", color: "#fff", flexShrink: 0 }}
+            >
+              {aiLoading
+                ? <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                : <><Sparkle size={12} /> Fill</>}
+            </button>
+          </div>
+          {aiError && (
+            <p className="text-[11px]" style={{ color: "#DC2626" }}>{aiError}</p>
+          )}
+        </div>
+
         {error && (
           <div className="flex items-start gap-2 p-3 rounded-[var(--radius-md)] text-sm"
             style={{ background: "#FFF0F0", color: "#DC2626", border: "1px solid #FECACA" }}>

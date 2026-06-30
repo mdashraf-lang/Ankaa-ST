@@ -184,6 +184,7 @@ export default function BoardPage() {
 
   // ── New project modal ──────────────────────────────────────────────────────
   const [newProjModal,   setNewProjModal]   = React.useState(false)
+  const [newProjType,    setNewProjType]    = React.useState<'personal' | 'group'>('group')
   const [newProjName,    setNewProjName]    = React.useState("")
   const [newProjDesc,    setNewProjDesc]    = React.useState("")
   const [newProjSearch,  setNewProjSearch]  = React.useState("")
@@ -235,31 +236,12 @@ export default function BoardPage() {
       if (projRes.status === "fulfilled")  list = projRes.value.projects ?? []
       if (usersRes.status === "fulfilled") setAllUsers(usersRes.value.users ?? [])
 
-      // Auto-create personal board if missing
-      let personal = list.find(p => p.section === "personal")
-      if (!personal) {
-        try {
-          const d = await apiFetch<{ project: ApiProject }>("/api/projects", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: "My Board", description: "Personal tasks", section: "personal" }),
-          })
-          personal = d.project
-          for (const [i, title] of ["To Do", "In Progress", "Done"].entries()) {
-            await apiFetch(`/api/projects/${personal.id}/lists`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ title, position: i }),
-            })
-          }
-          list = [personal, ...list]
-        } catch { /* ignore */ }
-      }
-
-      // Sort: personal first, then by created_at desc
+      // Deduplicate personal boards (keep only the first), then sort personal first
+      const personalBoards = list.filter(p => p.section === "personal")
+      const nonPersonal    = list.filter(p => p.section !== "personal")
       list = [
-        ...list.filter(p => p.section === "personal"),
-        ...list.filter(p => p.section !== "personal"),
+        ...(personalBoards.length > 0 ? [personalBoards[0]] : []),
+        ...nonPersonal,
       ]
       setProjects(list)
 
@@ -322,30 +304,53 @@ export default function BoardPage() {
 
   // ── Create project ─────────────────────────────────────────────────────────
   async function handleCreateProject() {
-    if (!newProjName.trim()) return
     setCreatingProj(true)
     try {
-      const d = await apiFetch<{ project: ApiProject }>("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newProjName.trim(),
-          description: newProjDesc.trim() || null,
-          memberIds: newProjMembers,
-        }),
-      })
-      for (const [i, title] of ["Backlog", "To Do", "In Progress", "Done"].entries()) {
-        await apiFetch(`/api/projects/${d.project.id}/lists`, {
+      if (newProjType === 'personal') {
+        const existing = projects.find(p => p.section === 'personal')
+        if (existing) {
+          setNewProjModal(false)
+          openBoard(existing.id)
+          return
+        }
+        const d = await apiFetch<{ project: ApiProject }>("/api/projects", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, position: i }),
+          body: JSON.stringify({ name: "My Board", description: "Personal tasks", section: "personal" }),
         })
+        for (const [i, title] of ["To Do", "In Progress", "Done"].entries()) {
+          await apiFetch(`/api/projects/${d.project.id}/lists`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, position: i }),
+          })
+        }
+        await loadProjects()
+        toast.success("Personal board created")
+        setNewProjModal(false)
+      } else {
+        if (!newProjName.trim()) return
+        const d = await apiFetch<{ project: ApiProject }>("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: newProjName.trim(),
+            description: newProjDesc.trim() || null,
+            memberIds: newProjMembers,
+          }),
+        })
+        for (const [i, title] of ["Backlog", "To Do", "In Progress", "Done"].entries()) {
+          await apiFetch(`/api/projects/${d.project.id}/lists`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, position: i }),
+          })
+        }
+        await loadProjects()
+        toast.success(`"${d.project.name}" created`)
+        setNewProjModal(false); setNewProjName(""); setNewProjDesc(""); setNewProjMembers([])
       }
-      // Reload to get full project_members data
-      await loadProjects()
-      toast.success(`"${d.project.name}" created`)
-      setNewProjModal(false); setNewProjName(""); setNewProjDesc(""); setNewProjMembers([])
-    } catch { toast.error("Failed to create project") }
+    } catch { toast.error("Failed to create board") }
     finally { setCreatingProj(false) }
   }
 
@@ -554,7 +559,7 @@ export default function BoardPage() {
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <PageHeader title="Board" subtitle="Your personal tasks and shared project boards" />
-          <Button variant="primary" size="sm" onClick={() => { setNewProjName(""); setNewProjDesc(""); setNewProjSearch(""); setNewProjMembers([]); setNewProjModal(true) }}>
+          <Button variant="primary" size="sm" onClick={() => { setNewProjName(""); setNewProjDesc(""); setNewProjSearch(""); setNewProjMembers([]); setNewProjType(projects.some(p => p.section === 'personal') ? 'group' : 'personal'); setNewProjModal(true) }}>
             <Plus size={14} /> New Project
           </Button>
         </div>
@@ -583,12 +588,12 @@ export default function BoardPage() {
 
             {/* Add new project card */}
             <button
-              onClick={() => { setNewProjName(""); setNewProjDesc(""); setNewProjSearch(""); setNewProjMembers([]); setNewProjModal(true) }}
+              onClick={() => { setNewProjName(""); setNewProjDesc(""); setNewProjSearch(""); setNewProjMembers([]); setNewProjType(projects.some(p => p.section === 'personal') ? 'group' : 'personal'); setNewProjModal(true) }}
               className="flex flex-col items-center justify-center gap-2 rounded-[var(--radius-xl)] border-2 border-dashed min-h-[140px] transition-all hover:border-[#1B2A5E] hover:bg-[#F8F9FC]"
               style={{ borderColor: "var(--surface-border)", color: "var(--text-disabled)" }}
             >
               <Plus size={22} />
-              <span className="text-xs font-medium">New Project</span>
+              <span className="text-xs font-medium">New Board</span>
             </button>
           </div>
         )}
@@ -700,83 +705,136 @@ export default function BoardPage() {
         <Modal
           open={newProjModal}
           onOpenChange={v => !v && setNewProjModal(false)}
-          title="New Project Board"
-          description="Create a shared project board and invite your team."
+          title="New Board"
+          description={newProjType === 'personal' ? "A private board just for your tasks." : "Create a shared board and invite your team."}
           footer={
             <>
               <Button variant="secondary" size="sm" onClick={() => setNewProjModal(false)}>Cancel</Button>
-              <Button variant="primary" size="sm" loading={creatingProj} onClick={handleCreateProject}>
-                Create Project
+              <Button variant="primary" size="sm" loading={creatingProj} onClick={handleCreateProject}
+                disabled={newProjType === 'group' && !newProjName.trim()}>
+                {newProjType === 'personal'
+                  ? (projects.some(p => p.section === 'personal') ? 'Open My Board' : 'Create Personal Board')
+                  : 'Create Group Board'}
               </Button>
             </>
           }
         >
           <div className="flex flex-col gap-4">
-            <Input
-              label="Project name *"
-              value={newProjName}
-              onChange={e => setNewProjName(e.target.value)}
-              placeholder="e.g. Website Redesign, OIFC Survey, Q3 Sprint…"
-              autoFocus
-            />
-            <Textarea
-              label="Description (optional)"
-              value={newProjDesc}
-              onChange={e => setNewProjDesc(e.target.value)}
-              placeholder="What is this project for?"
-              rows={2}
-            />
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                Invite Contributors
-              </label>
-              <input
-                type="text" value={newProjSearch}
-                onChange={e => setNewProjSearch(e.target.value)}
-                placeholder="Search team members…"
-                className="h-8 px-3 text-xs rounded-[var(--radius-md)] border"
-                style={{ background: "var(--surface-base)", borderColor: "var(--surface-border)", color: "var(--text-primary)", outline: "none" }}
-              />
-              {newProjMembers.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {newProjMembers.map(uid => {
-                    const u = allUsers.find(x => x.id === uid)
-                    return (
-                      <span key={uid} className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full"
-                        style={{ background: "#EEF1F8", color: "#1B2A5E" }}>
-                        {u?.full_name ?? u?.email ?? uid}
-                        <button onClick={() => setNewProjMembers(p => p.filter(id => id !== uid))}><X size={10} /></button>
-                      </span>
-                    )
-                  })}
-                </div>
-              )}
-              <div className="flex flex-col max-h-[140px] overflow-y-auto rounded-[var(--radius-md)] border"
-                style={{ borderColor: "var(--surface-border)" }}>
-                {filteredNewProjUsers.length === 0
-                  ? <p className="text-xs text-center py-3" style={{ color: "var(--text-disabled)" }}>No matches</p>
-                  : filteredNewProjUsers.map(u => {
-                    const sel = newProjMembers.includes(u.id)
-                    return (
-                      <button key={u.id}
-                        onClick={() => setNewProjMembers(prev => sel ? prev.filter(id => id !== u.id) : [...prev, u.id])}
-                        className="flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[#F1F3F7]"
-                      >
-                        <MemberAvatar name={u.full_name} size={22} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{u.full_name ?? u.email}</p>
-                          {u.full_name && <p className="text-[10px] truncate" style={{ color: "var(--text-disabled)" }}>{u.email}</p>}
-                        </div>
-                        <div className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0"
-                          style={{ borderColor: sel ? "#1B2A5E" : "var(--surface-border)", background: sel ? "#1B2A5E" : "transparent" }}>
-                          {sel && <span className="text-white text-[8px] font-bold">✓</span>}
-                        </div>
-                      </button>
-                    )
-                  })
-                }
-              </div>
+
+            {/* ── Type selector ─────────────────────────────────────────── */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setNewProjType('personal')}
+                className="flex flex-col items-center gap-1.5 py-3.5 rounded-[var(--radius-lg)] border-2 transition-all"
+                style={{
+                  borderColor: newProjType === 'personal' ? '#1B2A5E' : 'var(--surface-border)',
+                  background:  newProjType === 'personal' ? '#EEF1F8' : 'var(--surface-base)',
+                }}
+              >
+                <HouseSimple size={20} style={{ color: newProjType === 'personal' ? '#1B2A5E' : 'var(--text-muted)' }} />
+                <span className="text-xs font-bold" style={{ color: newProjType === 'personal' ? '#1B2A5E' : 'var(--text-muted)' }}>Personal</span>
+                <span className="text-[10px]" style={{ color: 'var(--text-disabled)' }}>Only visible to you</span>
+              </button>
+              <button
+                onClick={() => setNewProjType('group')}
+                className="flex flex-col items-center gap-1.5 py-3.5 rounded-[var(--radius-lg)] border-2 transition-all"
+                style={{
+                  borderColor: newProjType === 'group' ? '#2563EB' : 'var(--surface-border)',
+                  background:  newProjType === 'group' ? '#EFF6FF' : 'var(--surface-base)',
+                }}
+              >
+                <FolderSimple size={20} style={{ color: newProjType === 'group' ? '#2563EB' : 'var(--text-muted)' }} />
+                <span className="text-xs font-bold" style={{ color: newProjType === 'group' ? '#2563EB' : 'var(--text-muted)' }}>Group Project</span>
+                <span className="text-[10px]" style={{ color: 'var(--text-disabled)' }}>Collaborate with team</span>
+              </button>
             </div>
+
+            {/* ── Personal board info ───────────────────────────────────── */}
+            {newProjType === 'personal' && (
+              <div className="flex items-start gap-3 p-3 rounded-[var(--radius-md)]"
+                style={{ background: '#F4F6FB', border: '1px solid #E0E4F0' }}>
+                <HouseSimple size={15} weight="fill" style={{ color: '#1B2A5E', flexShrink: 0, marginTop: 1 }} />
+                <div>
+                  <p className="text-xs font-semibold" style={{ color: '#1B2A5E' }}>My Board</p>
+                  <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                    {projects.some(p => p.section === 'personal')
+                      ? "You already have a personal board. Click the button to open it."
+                      : "Creates a private board with To Do, In Progress, and Done columns. Only you can see and edit this board."}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* ── Group project form ────────────────────────────────────── */}
+            {newProjType === 'group' && (
+              <>
+                <Input
+                  label="Project name *"
+                  value={newProjName}
+                  onChange={e => setNewProjName(e.target.value)}
+                  placeholder="e.g. Website Redesign, OIFC Survey, Q3 Sprint…"
+                  autoFocus
+                />
+                <Textarea
+                  label="Description (optional)"
+                  value={newProjDesc}
+                  onChange={e => setNewProjDesc(e.target.value)}
+                  placeholder="What is this project for?"
+                  rows={2}
+                />
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                    Invite Contributors
+                  </label>
+                  <input
+                    type="text" value={newProjSearch}
+                    onChange={e => setNewProjSearch(e.target.value)}
+                    placeholder="Search team members…"
+                    className="h-8 px-3 text-xs rounded-[var(--radius-md)] border"
+                    style={{ background: "var(--surface-base)", borderColor: "var(--surface-border)", color: "var(--text-primary)", outline: "none" }}
+                  />
+                  {newProjMembers.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {newProjMembers.map(uid => {
+                        const u = allUsers.find(x => x.id === uid)
+                        return (
+                          <span key={uid} className="flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full"
+                            style={{ background: "#EEF1F8", color: "#1B2A5E" }}>
+                            {u?.full_name ?? u?.email ?? uid}
+                            <button onClick={() => setNewProjMembers(p => p.filter(id => id !== uid))}><X size={10} /></button>
+                          </span>
+                        )
+                      })}
+                    </div>
+                  )}
+                  <div className="flex flex-col max-h-[140px] overflow-y-auto rounded-[var(--radius-md)] border"
+                    style={{ borderColor: "var(--surface-border)" }}>
+                    {filteredNewProjUsers.length === 0
+                      ? <p className="text-xs text-center py-3" style={{ color: "var(--text-disabled)" }}>No matches</p>
+                      : filteredNewProjUsers.map(u => {
+                        const sel = newProjMembers.includes(u.id)
+                        return (
+                          <button key={u.id}
+                            onClick={() => setNewProjMembers(prev => sel ? prev.filter(id => id !== u.id) : [...prev, u.id])}
+                            className="flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[#F1F3F7]"
+                          >
+                            <MemberAvatar name={u.full_name} size={22} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{u.full_name ?? u.email}</p>
+                              {u.full_name && <p className="text-[10px] truncate" style={{ color: "var(--text-disabled)" }}>{u.email}</p>}
+                            </div>
+                            <div className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0"
+                              style={{ borderColor: sel ? "#1B2A5E" : "var(--surface-border)", background: sel ? "#1B2A5E" : "transparent" }}>
+                              {sel && <span className="text-white text-[8px] font-bold">✓</span>}
+                            </div>
+                          </button>
+                        )
+                      })
+                    }
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </Modal>
 

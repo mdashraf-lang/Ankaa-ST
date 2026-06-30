@@ -5,17 +5,16 @@ import { randomUUID } from 'crypto'
 
 // Stages each role is responsible for approving
 const ROLE_STAGES: Record<string, string[]> = {
-  hod:         ['pending_ghassani', 'pending_yousuf', 'pending_sultan'],
-  admin:       ['pending_ramimi'],
-  hr:          ['pending_hr'],
-  super_admin: ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
-  md:          ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
-  cto:         ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
-  coo:         ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  hod:   ['pending_ghassani', 'pending_yousuf', 'pending_sultan'],
+  admin: ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  hr:    ['pending_hr'],
+  md:    ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  cto:   ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  coo:   ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
 }
 
 function getInitialStatus(role: string): string {
-  if (['md', 'cto', 'coo', 'super_admin'].includes(role)) return 'pending_hr'
+  if (['md', 'cto', 'coo', 'admin'].includes(role)) return 'pending_hr'
   if (['hod', 'admin', 'finance'].includes(role)) return 'pending_hr'
   if (role === 'hr') return 'pending_hr'
   return 'pending_ghassani'

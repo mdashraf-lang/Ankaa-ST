@@ -43,7 +43,7 @@ const statusAbbrv: Record<string, { abbr: string; bg: string; color: string }> =
 
 export default function RosterPage() {
   const { user }  = useAuth()
-  const isManager = ['super_admin', 'admin', 'hr'].includes(user?.role ?? '')
+  const isManager = ['admin', 'hr'].includes(user?.role ?? '')
   const today = new Date()
   const [viewMonth, setViewMonth] = React.useState(today.getMonth() + 1)
   const [viewYear, setViewYear] = React.useState(today.getFullYear())

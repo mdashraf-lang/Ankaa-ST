@@ -7,7 +7,7 @@ export async function GET() {
   const { data, error } = await supabaseAdmin
     .from('profiles')
     .select(
-      'id, full_name, email, role, joining_date, date_of_birth, gender, phone_number, emergency_number, created_at, last_sign_in_at'
+      'id, full_name, email, role, employee_id, joining_date, date_of_birth, gender, phone_number, emergency_number, created_at, last_sign_in_at'
     )
     .order('full_name')
 

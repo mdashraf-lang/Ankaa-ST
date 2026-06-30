@@ -37,13 +37,12 @@ const STAGE_COLOR: Record<string, string> = {
 }
 
 const ROLE_STAGES: Record<string, string[]> = {
-  hod:         ['pending_ghassani', 'pending_yousuf', 'pending_sultan'],
-  admin:       ['pending_ramimi'],
-  hr:          ['pending_hr'],
-  super_admin: ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
-  md:          ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
-  cto:         ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
-  coo:         ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  hod:   ['pending_ghassani', 'pending_yousuf', 'pending_sultan'],
+  admin: ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  hr:    ['pending_hr'],
+  md:    ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  cto:   ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
+  coo:   ['pending_ghassani', 'pending_yousuf', 'pending_sultan', 'pending_ramimi', 'pending_hr'],
 }
 
 const LEAVE_TYPE_LABEL: Record<string, string> = {

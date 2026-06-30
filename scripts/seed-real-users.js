@@ -300,7 +300,7 @@ const SKIP_EMAILS = new Set([
   const { rows } = await db.query(
     `SELECT email, full_name, role FROM profiles ORDER BY
        CASE role
-         WHEN 'super_admin' THEN 1 WHEN 'admin' THEN 2
+         WHEN 'admin' THEN 1
          WHEN 'md' THEN 3 WHEN 'cto' THEN 4 WHEN 'coo' THEN 5
          WHEN 'hr' THEN 6 WHEN 'finance' THEN 7
          WHEN 'hod' THEN 8 WHEN 'team_member' THEN 9

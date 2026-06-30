@@ -73,9 +73,9 @@ function Skeleton({ className }: { className?: string }) {
 }
 
 // ── ═══════════════════════════════════════════════════════════════════ ───────
-//    SUPER ADMIN DASHBOARD
+//    ADMIN DASHBOARD
 // ── ═══════════════════════════════════════════════════════════════════ ───────
-function SuperAdminDashboard() {
+function AdminDashboard() {
   const { user }  = useAuth()
   const [data,    setData]    = React.useState<DashData | null>(null)
   const [admin,   setAdmin]   = React.useState<AdminStats | null>(null)
@@ -84,7 +84,6 @@ function SuperAdminDashboard() {
   React.useEffect(() => {
     Promise.all([
       apiFetch<DashData>('/api/dashboard/stats'),
-      // Fetch users count + pending approvals + invoices in parallel
       apiFetch<{ users: { id: string }[] }>('/api/users'),
       apiFetch<{ leave_requests: (LeaveRequest & { profiles?: { full_name: string | null; email: string } })[] }>('/api/leave-requests?pending_approval=true'),
       apiFetch<{ invoices: { id: string; name: string; amount: number; user_id: string; status: string }[] }>('/api/invoices'),
@@ -109,8 +108,8 @@ function SuperAdminDashboard() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-              style={{ background: '#FEF2F2', color: '#DC2626' }}>
-              SUPER ADMIN
+              style={{ background: '#FFFBEB', color: '#D97706' }}>
+              ADMIN
             </span>
           </div>
           <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -126,13 +125,13 @@ function SuperAdminDashboard() {
         </div>
       </div>
 
-      {/* KPI row */}
+      {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Employees',    value: admin?.total_users ?? 0,       icon: Users,          color: '#1B2A5E', bg: '#EEF1F8' },
-          { label: 'Pending Approvals',  value: admin?.pending_approvals ?? 0, icon: ClockCountdown, color: '#E89B1A', bg: '#FFF8E6' },
-          { label: 'Active Projects',    value: admin?.active_projects ?? 0,   icon: Briefcase,      color: '#2563EB', bg: '#EFF4FF' },
-          { label: 'Unpaid Invoices',    value: admin?.invoices_unpaid ?? 0,   icon: CurrencyDollar, color: '#DC2626', bg: '#FFF0F0' },
+          { label: 'Total Employees',   value: admin?.total_users       ?? 0, icon: Users,          color: '#1B2A5E', bg: '#EEF1F8' },
+          { label: 'Pending Approvals', value: admin?.pending_approvals ?? 0, icon: ClockCountdown, color: '#E89B1A', bg: '#FFF8E6' },
+          { label: 'Active Projects',   value: admin?.active_projects   ?? 0, icon: Briefcase,      color: '#2563EB', bg: '#EFF4FF' },
+          { label: 'Unpaid Invoices',   value: admin?.invoices_unpaid   ?? 0, icon: CurrencyDollar, color: '#DC2626', bg: '#FFF0F0' },
         ].map(kpi => (
           <div key={kpi.label} className="flex flex-col gap-3 p-4 rounded-[var(--radius-lg)] border"
             style={{ background: 'var(--surface-base)', borderColor: 'var(--surface-border)' }}>
@@ -204,17 +203,17 @@ function SuperAdminDashboard() {
           </Card>
         </div>
 
-        {/* System quick links */}
+        {/* System management links */}
         <Card>
           <CardHeader><CardTitle>System Management</CardTitle></CardHeader>
           <div className="flex flex-col gap-2 pb-2">
             {[
-              { label: 'User Management',   href: '/admin/users',           icon: Users,          color: '#1B2A5E' },
-              { label: 'Org Chart Editor',  href: '/people/org-chart',      icon: ShieldCheck,    color: '#2563EB' },
-              { label: 'Payroll Overview',  href: '/people/payroll',        icon: CurrencyDollar, color: '#059669' },
-              { label: 'Finance & Invoices',href: '/finance',               icon: ChartBar,       color: '#D97706' },
-              { label: 'Roster',            href: '/people/roster',         icon: CalendarCheck,  color: '#7C3AED' },
-              { label: 'System Settings',   href: '/admin',                 icon: ShieldCheck,    color: '#6B7280' },
+              { label: 'User Management',    href: '/admin/users',          icon: Users,          color: '#1B2A5E' },
+              { label: 'Org Chart Editor',   href: '/people/org-chart',     icon: ShieldCheck,    color: '#2563EB' },
+              { label: 'Payroll Overview',   href: '/people/payroll',       icon: CurrencyDollar, color: '#059669' },
+              { label: 'Finance & Invoices', href: '/finance',              icon: ChartBar,       color: '#D97706' },
+              { label: 'Roster',             href: '/people/roster',        icon: CalendarCheck,  color: '#7C3AED' },
+              { label: 'System Settings',    href: '/admin',                icon: ShieldCheck,    color: '#6B7280' },
             ].map(({ label, href, icon: Icon, color }) => (
               <Link key={href} href={href}
                 className="flex items-center gap-3 px-4 py-2.5 rounded-[var(--radius-md)] transition-colors hover:bg-[#F1F3F7]">
@@ -228,177 +227,6 @@ function SuperAdminDashboard() {
             ))}
           </div>
         </Card>
-      </div>
-    </div>
-  )
-}
-
-// ── ═══════════════════════════════════════════════════════════════════ ───────
-//    ADMIN DASHBOARD
-// ── ═══════════════════════════════════════════════════════════════════ ───────
-function AdminDashboard() {
-  const { user }  = useAuth()
-  const [data,    setData]    = React.useState<DashData | null>(null)
-  const [queue,   setQueue]   = React.useState<(LeaveRequest & { profiles?: { full_name: string | null; email: string } })[]>([])
-  const [loading, setLoading] = React.useState(true)
-
-  React.useEffect(() => {
-    Promise.all([
-      apiFetch<DashData>('/api/dashboard/stats'),
-      apiFetch<{ leave_requests: (LeaveRequest & { profiles?: { full_name: string | null; email: string } })[] }>('/api/leave-requests?pending_approval=true'),
-    ]).then(([d, leaveRes]) => {
-      setData(d)
-      setQueue(leaveRes.leave_requests ?? [])
-    }).catch(() => {}).finally(() => setLoading(false))
-  }, [])
-
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-              style={{ background: '#FFFBEB', color: '#D97706' }}>
-              ADMIN
-            </span>
-          </div>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            Good {greeting()}, {user?.full_name?.split(' ')[0]} 👋
-          </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Management access · {new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </p>
-        </div>
-        <Link href="/people/leave/approvals">
-          <Button variant="primary" size="sm">
-            <ClockCountdown size={14} />
-            My Queue {queue.length > 0 && `(${queue.length})`}
-          </Button>
-        </Link>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {[
-          { label: 'Awaiting My Approval', value: queue.length,                        icon: ClockCountdown, color: '#E89B1A', bg: '#FFF8E6' },
-          { label: 'Active Projects',       value: data?.stats.active_projects ?? 0,   icon: Briefcase,      color: '#2563EB', bg: '#EFF4FF' },
-          { label: 'Employees Present',     value: data?.stats.employees_present ?? 0, icon: Users,          color: '#10A854', bg: '#EDFBF3' },
-        ].map(kpi => (
-          <div key={kpi.label} className="flex flex-col gap-3 p-4 rounded-[var(--radius-lg)] border"
-            style={{ background: 'var(--surface-base)', borderColor: 'var(--surface-border)' }}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{kpi.label}</span>
-              <div className="w-8 h-8 rounded-[var(--radius-md)] flex items-center justify-center"
-                style={{ background: kpi.bg }}>
-                <kpi.icon size={16} style={{ color: kpi.color }} />
-              </div>
-            </div>
-            {loading
-              ? <Skeleton className="h-8 w-16" />
-              : <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{kpi.value}</span>}
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Approval queue */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <ClockCountdown size={16} style={{ color: '#E89B1A' }} />
-              <CardTitle>My Approval Queue</CardTitle>
-            </div>
-            <Link href="/people/leave/approvals">
-              <Button variant="ghost" size="sm" style={{ color: 'var(--text-muted)' }}>All <ArrowRight size={13} /></Button>
-            </Link>
-          </CardHeader>
-          {loading ? <Skeleton className="h-24 mx-4 mb-4" /> :
-            queue.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 py-8">
-                <CheckCircle size={22} style={{ color: '#10A854' }} />
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>All clear</p>
-              </div>
-            ) : (
-              <div className="flex flex-col divide-y" style={{ borderColor: 'var(--surface-border)' }}>
-                {queue.slice(0, 5).map(lr => (
-                  <div key={lr.id} className="flex items-center gap-3 px-4 py-3">
-                    <Avatar name={lr.profiles?.full_name} size="sm" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                        {lr.profiles?.full_name ?? '—'}
-                      </p>
-                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {LEAVE_LABEL[lr.leave_type] ?? lr.leave_type} · {fmt(lr.start_date)} – {fmt(lr.end_date)}
-                      </p>
-                    </div>
-                    <Link href="/people/leave/approvals">
-                      <button className="text-xs font-semibold px-2.5 py-1 rounded-[var(--radius-md)] transition-colors hover:opacity-80"
-                        style={{ background: '#1B2A5E', color: 'white' }}>
-                        Review
-                      </button>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            )}
-        </Card>
-
-        {/* Quick actions + my leave */}
-        <div className="flex flex-col gap-4">
-          {/* Quick actions */}
-          <Card>
-            <CardHeader><CardTitle>Quick Actions</CardTitle></CardHeader>
-            <div className="grid grid-cols-2 gap-2 pb-4 px-4">
-              {[
-                { label: 'Approve Leave',  href: '/people/leave/approvals', color: '#E89B1A', bg: '#FFF8E6', icon: ClockCountdown },
-                { label: 'View Finance',   href: '/finance',                color: '#10A854', bg: '#EDFBF3', icon: CurrencyDollar },
-                { label: 'Team Roster',    href: '/people/roster',          color: '#2563EB', bg: '#EFF4FF', icon: Users          },
-                { label: 'Org Chart',      href: '/people/org-chart',       color: '#7C3AED', bg: '#F5F3FF', icon: ShieldCheck    },
-              ].map(a => (
-                <Link key={a.href} href={a.href}>
-                  <div className="flex flex-col gap-2 p-3 rounded-[var(--radius-lg)] border cursor-pointer transition-all hover:shadow-md"
-                    style={{ borderColor: 'var(--surface-border)', background: 'var(--surface-subtle)' }}>
-                    <div className="w-8 h-8 rounded-[var(--radius-md)] flex items-center justify-center"
-                      style={{ background: a.bg }}>
-                      <a.icon size={15} style={{ color: a.color }} />
-                    </div>
-                    <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{a.label}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </Card>
-
-          {/* My leave balance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>My Leave Balance</CardTitle>
-              <Link href="/people/leave">
-                <Button variant="ghost" size="sm" style={{ color: 'var(--text-muted)' }}>Apply</Button>
-              </Link>
-            </CardHeader>
-            {loading ? <Skeleton className="h-16 mx-4 mb-4" /> : (
-              <div className="flex flex-col gap-2 px-4 pb-4">
-                {[
-                  { label: 'Annual',    days: data?.my_balance?.annual_leave_days    ?? 30, max: 30, color: '#2563EB' },
-                  { label: 'Sick',      days: data?.my_balance?.sick_leave_days      ?? 21, max: 21, color: '#10A854' },
-                  { label: 'Emergency', days: data?.my_balance?.emergency_leave_days ??  6, max:  6, color: '#E89B1A' },
-                ].map(b => (
-                  <div key={b.label} className="flex items-center gap-3">
-                    <span className="text-xs w-16 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{b.label}</span>
-                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-muted)' }}>
-                      <div className="h-full rounded-full" style={{ width: `${(b.days / b.max) * 100}%`, background: b.color }} />
-                    </div>
-                    <span className="text-xs font-semibold w-12 text-right" style={{ color: 'var(--text-primary)' }}>
-                      {b.days}/{b.max}d
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </div>
       </div>
     </div>
   )
@@ -738,7 +566,6 @@ export default function DashboardPage() {
 
   const role = user?.role ?? ''
 
-  if (role === 'super_admin')  return <SuperAdminDashboard />
   if (role === 'admin')        return <AdminDashboard />
   if (role === 'trainee')      return <TraineeDashboard />
 

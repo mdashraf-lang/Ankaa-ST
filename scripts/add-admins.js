@@ -10,7 +10,7 @@ const DATA_DIR = path.resolve(__dirname, '..', '.local-db').replace(/\\/g, '/')
   const db = new PGlite(DATA_DIR)
 
   const accounts = [
-    { email: 'superadmin@ankaa.om', password: 'SuperAdmin@2026', full_name: 'Super Admin', role: 'super_admin', username: 'superadmin' },
+    { email: 'superadmin@ankaa.om', password: 'SuperAdmin@2026', full_name: 'Super Admin', role: 'admin', username: 'superadmin' },
     { email: 'admin@ankaa.om',      password: 'Admin@2026',       full_name: 'Admin',        role: 'admin',       username: 'admin'      },
   ]
 

@@ -201,7 +201,7 @@ async function main() {
     { email: 'furwaasim@ankaa.om',       full_name: 'Furwa Asim',             role: 'collaborator',username: 'furwa',           gender: 'female', joining_date: '2023-04-01', phone_number: '+96891234030' },
     { email: 'imthiyaz@ankaa.om',        full_name: 'Mohammad Imthiyaz',      role: 'collaborator',username: 'imthiyaz',        gender: 'male',   joining_date: '2023-06-01', phone_number: '+96891234031' },
     // ERP Project Lead
-    { email: 'ashraf@ankaa.om',          full_name: 'MD Ashraf',              role: 'super_admin', username: 'ashraf',          gender: 'male',   joining_date: '2025-01-01', phone_number: '+96891234032' },
+    { email: 'ashraf@ankaa.om',          full_name: 'MD Ashraf',              role: 'admin', username: 'ashraf',          gender: 'male',   joining_date: '2025-01-01', phone_number: '+96891234032' },
   ]
 
   const userMap = {} // email → id

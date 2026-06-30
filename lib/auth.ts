@@ -42,32 +42,31 @@ export async function getServerSession(): Promise<JWTPayload | null> {
 
 // Role helpers
 export function isAdmin(role: string): boolean {
-  return ['super_admin', 'admin'].includes(role)
+  return role === 'admin'
 }
 
 export function isExecutive(role: string): boolean {
-  return ['super_admin', 'admin', 'ceo', 'md', 'cto', 'coo'].includes(role)
+  return ['admin', 'ceo', 'md', 'cto', 'coo'].includes(role)
 }
 
 export function isHR(role: string): boolean {
-  return ['super_admin', 'admin', 'hr'].includes(role)
+  return ['admin', 'hr'].includes(role)
 }
 
 export function isFinance(role: string): boolean {
-  return ['super_admin', 'admin', 'finance'].includes(role)
+  return ['admin', 'finance'].includes(role)
 }
 
 export function canManageUsers(role: string): boolean {
-  return ['super_admin', 'admin', 'hr'].includes(role)
+  return ['admin', 'hr'].includes(role)
 }
 
 export function canApproveLeave(role: string): boolean {
-  return ['super_admin', 'admin', 'hr', 'ceo', 'md', 'coo', 'cto', 'hod'].includes(role)
+  return ['admin', 'hr', 'ceo', 'md', 'coo', 'cto', 'hod'].includes(role)
 }
 
 // Role display names
 export const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Super Admin',
   admin: 'Admin',
   ceo: 'CEO',
   md: 'Managing Director',

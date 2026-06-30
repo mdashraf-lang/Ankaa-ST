@@ -21,11 +21,11 @@ const STAGE_FIELDS: Record<string, { at: string; by: string; col: string }> = {
 
 // Roles that can act on each stage
 const STAGE_ROLES: Record<string, string[]> = {
-  pending_ghassani: ['hod', 'admin', 'super_admin', 'md', 'cto', 'coo'],
-  pending_yousuf:   ['hod', 'admin', 'super_admin', 'md', 'cto', 'coo'],
-  pending_sultan:   ['hod', 'admin', 'super_admin', 'md', 'cto', 'coo'],
-  pending_ramimi:   ['admin', 'super_admin', 'md', 'cto', 'coo'],
-  pending_hr:       ['hr',   'super_admin', 'md', 'cto', 'coo'],
+  pending_ghassani: ['hod', 'admin', 'md', 'cto', 'coo'],
+  pending_yousuf:   ['hod', 'admin', 'md', 'cto', 'coo'],
+  pending_sultan:   ['hod', 'admin', 'md', 'cto', 'coo'],
+  pending_ramimi:   ['admin', 'md', 'cto', 'coo'],
+  pending_hr:       ['hr', 'admin', 'md', 'cto', 'coo'],
 }
 
 function canActOnStage(status: string, role: string): boolean {
