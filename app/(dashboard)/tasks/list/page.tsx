@@ -207,6 +207,17 @@ export default function BoardPage() {
   const [deleteTarget,   setDeleteTarget]   = React.useState<ApiProject | null>(null)
   const [deleting,       setDeleting]       = React.useState(false)
 
+  // ── Edit / Delete task ─────────────────────────────────────────────────────
+  const [editCard,       setEditCard]       = React.useState<KanbanCard | null>(null)
+  const [editTitle,      setEditTitle]      = React.useState("")
+  const [editDesc,       setEditDesc]       = React.useState("")
+  const [editDue,        setEditDue]        = React.useState("")
+  const [editPriority,   setEditPriority]   = React.useState("medium")
+  const [editAssignee,   setEditAssignee]   = React.useState("")
+  const [savingEdit,     setSavingEdit]     = React.useState(false)
+  const [deleteCard,     setDeleteCard]     = React.useState<KanbanCard | null>(null)
+  const [deletingCard,   setDeletingCard]   = React.useState(false)
+
   const selectedProject = projects.find(p => p.id === selectedId)
   const isPersonal      = selectedProject?.section === "personal"
   const isOwner         = selectedProject?.created_by === user?.id || selectedProject?.member_role === "owner"
@@ -351,6 +362,60 @@ export default function BoardPage() {
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Failed to delete board")
     } finally { setDeleting(false) }
+  }
+
+  // ── Open edit task modal ──────────────────────────────────────────────────
+  function handleOpenEdit(card: KanbanCard) {
+    setEditCard(card)
+    setEditTitle(card.title)
+    setEditDesc(card.description ?? "")
+    setEditDue(card.due_date ?? "")
+    setEditPriority(card.priority ?? "medium")
+    setEditAssignee(card.assignees?.[0]?.user_id ?? "")
+  }
+
+  async function handleSaveEdit() {
+    if (!editCard || !editTitle.trim()) return
+    setSavingEdit(true)
+    try {
+      await apiFetch(`/api/cards/${editCard.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title:       editTitle.trim(),
+          description: editDesc.trim() || null,
+          due_date:    editDue || null,
+          priority:    editPriority,
+          assigned_to: editAssignee || null,
+        }),
+      })
+      const assignee = editAssignee ? members.find(m => m.user_id === editAssignee) : null
+      setCards(prev => prev.map(c => c.id === editCard.id ? {
+        ...c,
+        title:       editTitle.trim(),
+        description: editDesc.trim() || null,
+        due_date:    editDue || null,
+        priority:    editPriority as KanbanCard["priority"],
+        assignees:   assignee
+          ? [{ user_id: assignee.user_id, full_name: assignee.profiles?.full_name ?? null }]
+          : [],
+      } : c))
+      toast.success("Task updated")
+      setEditCard(null)
+    } catch { toast.error("Failed to update task") }
+    finally { setSavingEdit(false) }
+  }
+
+  async function handleDeleteCard() {
+    if (!deleteCard) return
+    setDeletingCard(true)
+    try {
+      await apiFetch(`/api/cards/${deleteCard.id}`, { method: "DELETE" })
+      setCards(prev => prev.filter(c => c.id !== deleteCard.id))
+      toast.success("Task deleted")
+      setDeleteCard(null)
+    } catch { toast.error("Failed to delete task") }
+    finally { setDeletingCard(false) }
   }
 
   // ── Invite member ──────────────────────────────────────────────────────────
@@ -618,6 +683,8 @@ export default function BoardPage() {
           onCardMove={handleCardMove}
           onAddCard={handleAddCard}
           onCardComplete={handleCardComplete}
+          onCardEdit={handleOpenEdit}
+          onCardDelete={setDeleteCard}
         />
       )}
 
@@ -847,6 +914,75 @@ export default function BoardPage() {
               <Button size="sm" loading={deleting} onClick={handleDeleteBoard}
                 style={{ background: "#DC2626", color: "#fff", border: "none" }}>
                 Delete Board
+              </Button>
+            </>
+          }
+        >{null}</Modal>
+
+        {/* Edit Task */}
+        <Modal
+          open={!!editCard}
+          onOpenChange={v => !v && setEditCard(null)}
+          title="Edit Task"
+          description="Update this task's details."
+          footer={
+            <>
+              <Button variant="secondary" size="sm" onClick={() => setEditCard(null)} disabled={savingEdit}>Cancel</Button>
+              <Button variant="primary" size="sm" loading={savingEdit} onClick={handleSaveEdit}>Save Changes</Button>
+            </>
+          }
+        >
+          <div className="flex flex-col gap-3">
+            <Input label="Task title *" value={editTitle} onChange={e => setEditTitle(e.target.value)}
+              placeholder="What needs to be done?" autoFocus />
+            <Textarea label="Description" value={editDesc} onChange={e => setEditDesc(e.target.value)}
+              placeholder="Add more details…" rows={2} />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Due Date</label>
+                <input type="date" value={editDue} onChange={e => setEditDue(e.target.value)}
+                  className="h-10 px-3 text-sm rounded-[var(--radius-md)] border"
+                  style={{ background: "var(--surface-base)", borderColor: "var(--surface-border)", color: "var(--text-primary)", outline: "none" }} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Priority</label>
+                <select value={editPriority} onChange={e => setEditPriority(e.target.value)}
+                  className="h-10 px-3 text-sm rounded-[var(--radius-md)] border"
+                  style={{ background: "var(--surface-base)", borderColor: "var(--surface-border)", color: "var(--text-primary)", outline: "none" }}>
+                  {PRIORITY_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+              </div>
+            </div>
+            {!isPersonal && members.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Assign To</label>
+                <select value={editAssignee} onChange={e => setEditAssignee(e.target.value)}
+                  className="h-10 px-3 text-sm rounded-[var(--radius-md)] border"
+                  style={{ background: "var(--surface-base)", borderColor: "var(--surface-border)", color: "var(--text-primary)", outline: "none" }}>
+                  <option value="">— Unassigned —</option>
+                  {members.map(m => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.profiles?.full_name ?? m.profiles?.email ?? m.user_id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </Modal>
+
+        {/* Delete Task */}
+        <Modal
+          open={!!deleteCard}
+          onOpenChange={v => !v && setDeleteCard(null)}
+          title="Delete Task"
+          description={`Delete "${deleteCard?.title}"? This cannot be undone.`}
+          footer={
+            <>
+              <Button variant="secondary" size="sm" onClick={() => setDeleteCard(null)} disabled={deletingCard}>Cancel</Button>
+              <Button size="sm" loading={deletingCard} onClick={handleDeleteCard}
+                style={{ background: "#DC2626", color: "#fff", border: "none" }}>
+                Delete Task
               </Button>
             </>
           }

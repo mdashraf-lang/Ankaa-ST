@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { CalendarBlank, ArrowRight, CheckCircle, Circle } from "@phosphor-icons/react"
+import { CalendarBlank, ArrowRight, CheckCircle, Circle, PencilSimple, Trash } from "@phosphor-icons/react"
 import type { KanbanCard } from "@/lib/types"
 
 function initials(name: string | null | undefined) {
@@ -29,13 +29,15 @@ const LABEL_COLORS = [
 ]
 
 interface TaskCardProps {
-  card:       KanbanCard
+  card:         KanbanCard
   canMoveNext?: boolean
-  onComplete?: (id: string, done: boolean) => void
-  onMoveNext?: (id: string) => void
+  onComplete?:  (id: string, done: boolean) => void
+  onMoveNext?:  (id: string) => void
+  onEdit?:      (card: KanbanCard) => void
+  onDelete?:    (card: KanbanCard) => void
 }
 
-export function TaskCard({ card, canMoveNext, onComplete, onMoveNext }: TaskCardProps) {
+export function TaskCard({ card, canMoveNext, onComplete, onMoveNext, onEdit, onDelete }: TaskCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id })
 
@@ -111,6 +113,30 @@ export function TaskCard({ card, canMoveNext, onComplete, onMoveNext }: TaskCard
             }}>
               {card.title}
             </p>
+
+            {/* Edit / Delete actions */}
+            <div className="flex items-center gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity -mt-0.5">
+              {onEdit && (
+                <button
+                  onClick={e => { e.stopPropagation(); onEdit(card) }}
+                  title="Edit task"
+                  className="w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-[#EEF1F8]"
+                  style={{ color: "#1B2A5E", pointerEvents: "auto" }}
+                >
+                  <PencilSimple size={11} />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={e => { e.stopPropagation(); onDelete(card) }}
+                  title="Delete task"
+                  className="w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-[#FFF0F0]"
+                  style={{ color: "#DC2626", pointerEvents: "auto" }}
+                >
+                  <Trash size={11} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Description preview */}

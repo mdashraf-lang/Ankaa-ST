@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db as supabaseAdmin } from '@/lib/db'
+import { randomUUID } from 'crypto'
 
 export async function PATCH(
   req: NextRequest,
@@ -7,7 +8,7 @@ export async function PATCH(
 ) {
   const { id } = await params
   const body = await req.json()
-  const allowed = ['title', 'description', 'list_id', 'position', 'completed', 'due_date', 'labels']
+  const allowed = ['title', 'description', 'list_id', 'position', 'completed', 'due_date', 'labels', 'priority']
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() }
   for (const key of allowed) {
     if (key in body) update[key] = body[key]
@@ -21,6 +22,18 @@ export async function PATCH(
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  // Update assignee if specified
+  if ('assigned_to' in body) {
+    await supabaseAdmin.from('project_card_members').delete().eq('card_id', id)
+    if (body.assigned_to) {
+      await supabaseAdmin.from('project_card_members').insert({
+        id: randomUUID(), card_id: id, user_id: body.assigned_to,
+        created_at: new Date().toISOString(),
+      })
+    }
+  }
+
   return NextResponse.json({ card: data })
 }
 
