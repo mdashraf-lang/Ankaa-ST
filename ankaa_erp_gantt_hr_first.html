@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Ankaa ERP — Integrated Project Plan</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --deep:#0a1e3d;
+  --navy:#003333;
+  --blue:#3b55a4;
+  --teal:#698593;
+  --gray:#333333;
+  --white:#ffffff;
+  --bg:#eef1f7;
+  --card:#ffffff;
+  --text:#0a1e3d;
+  --muted:#698593;
+  --border:#d4dae8;
+  --border-light:#e6eaf4;
+  --accent-light:#eef1f8;
+  --radius:12px;
+  --radius-sm:8px;
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --shadow:0 2px 14px rgba(10,30,61,.09);
+  --shadow-lg:0 8px 32px rgba(10,30,61,.14);
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font);
+  padding-bottom:80px;
+  min-width:360px;
+}
+
+/* ── Header band ─────────────────────────────────────────────────────────────── */
+.header-band{
+  background:linear-gradient(115deg, var(--deep) 0%, #1e3a8a 55%, var(--blue) 100%);
+  padding:36px 28px 30px;
+  position:relative;
+  overflow:hidden;
+}
+.header-band::before{
+  content:'';position:absolute;
+  top:-80px;right:-80px;
+  width:320px;height:320px;
+  background:rgba(255,255,255,.04);
+  border-radius:50%;pointer-events:none;
+}
+.header-band::after{
+  content:'RADIAL VELOCITY ——◆———————————— +74.6 km/s';
+  position:absolute;bottom:12px;right:28px;
+  font-size:9.5px;letter-spacing:.06em;
+  color:rgba(255,255,255,.18);font-weight:500;
+  white-space:nowrap;
+}
+.header-inner{max-width:1180px;margin:0 auto;position:relative;}
+.brand-row{
+  display:flex;align-items:center;gap:12px;margin-bottom:20px;
+}
+.brand-badge{
+  width:40px;height:40px;border-radius:9px;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:900;color:white;letter-spacing:-1px;
+  box-shadow:0 4px 14px rgba(10,30,61,.35);
+  flex-shrink:0;
+}
+.brand-text .company{
+  font-size:9.5px;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:rgba(255,255,255,.55);
+}
+.brand-text .division{
+  font-size:11px;font-weight:600;color:rgba(255,255,255,.80);letter-spacing:.04em;
+}
+.header-inner h1{
+  font-size:28px;font-weight:700;color:var(--white);
+  line-height:1.2;margin-bottom:8px;letter-spacing:-.3px;
+}
+.header-inner .sub{
+  font-size:13px;color:rgba(255,255,255,.62);font-weight:400;
+}
+
+/* ── Metric strip ────────────────────────────────────────────────────────────── */
+.metric-strip{
+  background:var(--deep);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  padding:0 28px;
+}
+.metric-inner{
+  max-width:1180px;margin:0 auto;
+  display:flex;flex-wrap:wrap;
+}
+.metric{
+  color:white;
+  padding:18px 28px 18px 0;
+  border-right:1px solid rgba(255,255,255,.08);
+  margin-right:28px;
+}
+.metric:last-child{border-right:none;margin-right:0;}
+.metric .ml{
+  font-size:8.5px;text-transform:uppercase;letter-spacing:.13em;
+  color:var(--teal);font-weight:700;margin-bottom:4px;
+}
+.metric .mv{
+  font-size:17px;font-weight:700;line-height:1;
+}
+
+/* ── Content ─────────────────────────────────────────────────────────────────── */
+.content{
+  max-width:1180px;margin:0 auto;padding:32px 28px 0;
+}
+
+/* ── Callout ─────────────────────────────────────────────────────────────────── */
+.callout{
+  background:linear-gradient(135deg,rgba(59,85,164,.05),rgba(105,133,147,.05));
+  border:1.5px solid rgba(59,85,164,.20);
+  border-left:4px solid var(--blue);
+  border-radius:var(--radius-sm);
+  padding:18px 22px;
+  font-size:12.5px;
+  margin-bottom:28px;
+}
+.callout b{color:var(--deep);font-size:13px;display:block;margin-bottom:10px;}
+.callout ul{
+  padding-left:0;
+  display:grid;grid-template-columns:1fr 1fr;gap:5px 32px;
+  list-style:none;
+}
+@media(max-width:640px){.callout ul{grid-template-columns:1fr}}
+.callout li{
+  color:var(--muted);line-height:1.6;
+  padding-left:16px;position:relative;font-size:12px;
+}
+.callout li::before{
+  content:'→';position:absolute;left:0;
+  color:var(--blue);font-size:10px;top:2px;font-weight:700;
+}
+.callout li em{color:var(--deep);font-style:normal;font-weight:700}
+
+/* ── Section row ─────────────────────────────────────────────────────────────── */
+.top-row{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;margin-bottom:24px;
+}
+.legend{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+}
+.legend-label{
+  font-size:9.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.10em;color:var(--muted);
+}
+.leg-item{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;color:var(--gray);
+}
+.leg-dot{
+  width:13px;height:13px;border-radius:4px;flex-shrink:0;
+}
+.today-note{
+  font-size:10.5px;color:var(--blue);font-weight:700;
+  background:rgba(59,85,164,.10);border:1px solid rgba(59,85,164,.22);
+  padding:4px 10px;border-radius:99px;
+}
+
+/* ── Gantt section ───────────────────────────────────────────────────────────── */
+.sec-wrap{margin-bottom:22px}
+.sec-title{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.11em;color:var(--blue);
+  margin-bottom:9px;padding-left:2px;
+  display:flex;align-items:center;gap:9px;
+}
+.sec-title::before{
+  content:'';display:block;width:18px;height:2.5px;
+  background:linear-gradient(90deg,var(--blue),var(--teal));
+  border-radius:2px;
+}
+.gantt-card{
+  background:var(--card);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius);
+  padding:20px 20px 16px;
+  overflow:hidden;
+  box-shadow:var(--shadow);
+}
+
+/* Month ruler */
+.ruler{position:relative;height:26px;margin-bottom:8px;}
+.ruler-mark{
+  position:absolute;top:0;
+  font-size:9px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;transform:translateX(-50%);
+}
+.ruler-mark::after{
+  content:'';display:block;width:1px;height:10px;
+  background:var(--border);margin:3px auto 0;
+}
+
+/* Gridlines */
+.gantt-grid{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  pointer-events:none;z-index:0;
+}
+
+/* Today marker */
+.today-line{
+  position:absolute;top:0;bottom:0;width:2px;
+  background:rgba(59,85,164,.55);
+  z-index:5;pointer-events:none;
+}
+.today-line::after{
+  content:'Today';
+  position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  font-size:8.5px;font-weight:700;color:var(--blue);
+  background:rgba(59,85,164,.12);padding:2px 5px;border-radius:3px;
+  white-space:nowrap;
+}
+
+/* Gantt rows */
+.gantt-row{
+  display:grid;grid-template-columns:208px 1fr;
+  align-items:center;gap:12px;
+  padding:3px 0;min-height:36px;
+  position:relative;
+}
+@media(max-width:640px){.gantt-row{grid-template-columns:110px 1fr}}
+.row-label{
+  font-size:11px;font-weight:600;color:var(--text);
+  text-align:right;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;padding-right:8px;
+}
+.row-track{
+  position:relative;height:26px;
+  background:rgba(10,30,61,.035);
+  border-radius:6px;overflow:visible;
+}
+
+.bar{
+  position:absolute;top:3px;height:20px;border-radius:5px;
+  display:flex;align-items:center;padding:0 8px;
+  font-size:9.5px;font-weight:700;color:#fff;
+  white-space:nowrap;overflow:hidden;cursor:default;
+  transition:filter .14s,transform .14s;
+  box-shadow:0 2px 8px rgba(10,30,61,.22);
+}
+.bar:hover{filter:brightness(1.12);transform:scaleY(1.12)}
+
+/* ── Summary table ───────────────────────────────────────────────────────────── */
+.tbl-wrap{
+  background:var(--card);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  margin-top:32px;
+}
+.tbl-head-row{
+  background:linear-gradient(115deg,var(--deep),var(--blue));
+  padding:18px 22px;
+  display:flex;align-items:center;gap:10px;
+}
+.tbl-head-row h2{
+  font-size:13px;font-weight:700;color:white;letter-spacing:.04em;
+}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--accent-light)}
+th{
+  padding:9px 13px;font-size:8.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.09em;
+  color:var(--muted);border-bottom:2px solid var(--border-light);text-align:left;
+}
+td{padding:9px 13px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(59,85,164,.03);transition:background .1s}
+
+.pn{
+  font-weight:700;font-size:9.5px;padding:3px 7px;border-radius:5px;
+  color:#fff;display:inline-block;min-width:32px;text-align:center;
+}
+.badge{
+  font-size:10px;font-weight:700;padding:3px 10px;
+  border-radius:99px;display:inline-block;
+}
+.bd{background:#d1fae5;color:#065f46}
+.ba{background:#dbeafe;color:#1e40af}
+.bp{background:#e5e7eb;color:#374151}
+.bn{background:#ede9fe;color:#4c1d95}
+
+.tag{
+  font-size:9.5px;background:var(--accent-light);border:1px solid var(--border);
+  padding:1px 6px;border-radius:4px;color:var(--muted);
+}
+.sec-tr td{
+  background:linear-gradient(90deg,rgba(59,85,164,.07),transparent);
+  font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.09em;color:var(--blue);padding:8px 13px;
+  border-bottom:1px solid var(--border-light);
+}
+.int-cell{font-size:10px;color:var(--teal);font-style:italic;margin-top:2px;}
+</style>
+</head>
+<body>
+
+<!-- ── Header ────────────────────────────────────────────────────────────────── -->
+<div class="header-band">
+  <div class="header-inner">
+    <div class="brand-row">
+      <div class="brand-badge">A</div>
+      <div class="brand-text">
+        <div class="company">Ankaa Space &amp; Technologies L.L.C</div>
+        <div class="division">Enterprise Resource Planning</div>
+      </div>
+    </div>
+    <h1>Integrated ERP Project Plan</h1>
+    <p class="sub">17 phases · HR requirements woven into existing builds · Working week: Sun – Thu</p>
+  </div>
+</div>
+
+<!-- ── Metric strip ───────────────────────────────────────────────────────────── -->
+<div class="metric-strip">
+  <div class="metric-inner">
+    <div class="metric"><div class="ml">Project Start</div><div class="mv">11 Jun 2026</div></div>
+    <div class="metric"><div class="ml">Project End</div><div class="mv">9 Sep 2026</div></div>
+    <div class="metric"><div class="ml">Total Phases</div><div class="mv">17</div></div>
+    <div class="metric"><div class="ml">Days Saved</div><div class="mv">7 days</div></div>
+    <div class="metric"><div class="ml">Working Week</div><div class="mv">Sun – Thu</div></div>
+    <div class="metric"><div class="ml">Project Lead</div><div class="mv">MD Ashraf</div></div>
+  </div>
+</div>
+
+<!-- ── Content ────────────────────────────────────────────────────────────────── -->
+<div class="content">
+
+  <!-- Callout -->
+  <div class="callout">
+    <b>HR Manual requirements absorbed into existing phases — no duplicate modules</b>
+    <ul>
+      <li><em>P3 Task Board</em> = Service Requests + IT Helpdesk (category + SLA priority)</li>
+      <li><em>P4 Asset System</em> = Stores / consumable inventory (asset type field)</li>
+      <li><em>P5 Fleet</em> = Logistics coordination (trip purpose categories)</li>
+      <li><em>P6 Ankaa Plus</em> = Risk register widget (4 pre-seeded HR risks)</li>
+      <li><em>P8 Email</em> = SLA breach alerts from P3 service request deadlines</li>
+      <li><em>P9 File Uploads</em> = DMS foundation + mail register direction metadata</li>
+      <li><em>P10 Mobile</em> = Mobile attendance, leave request, service ticket</li>
+    </ul>
+  </div>
+
+  <!-- Legend + today note -->
+  <div class="top-row">
+    <div class="legend">
+      <span class="legend-label">Status:</span>
+      <div class="leg-item"><div class="leg-dot" style="background:#059669"></div>Done</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#3b55a4"></div>Active</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#698593"></div>Planned</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#0a1e3d"></div>HR Manual Phase</div>
+    </div>
+    <div class="today-note">◆ Today: 21 Jun 2026</div>
+  </div>
+
+  <!-- Gantt sections rendered by JS -->
+  <div id="ganttRoot"></div>
+
+  <!-- Table -->
+  <div class="tbl-wrap">
+    <div class="tbl-head-row">
+      <h2>All 17 Phases — Summary Table</h2>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>Scope</th><th>Integration / Source</th>
+          <th>Dates</th><th>Days</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tBody"></tbody>
+    </table>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+/* ── Data ─────────────────────────────────────────────────────────────────────── */
+const PHASES = [
+  // Foundation
+  {id:'P1',  label:'P1 · HR Quick Wins',                 s:'2026-06-11',e:'2026-06-11',days:1, c:'#059669',st:'done',  src:'§1.2 basics',          int:null},
+  {id:'P2',  label:'P2 · Design System',                 s:'2026-06-14',e:'2026-06-17',days:4, c:'#059669',st:'done',  src:'Internal',              int:null},
+  {id:'P3',  label:'P3 · Backend & DB Migration',        s:'2026-06-21',e:'2026-06-26',days:5, c:'#1e3f8e',st:'active',src:'§2.1 §2.6 + SLA',      int:'Database migration, backend wiring & testing'},
+  {id:'P4',  label:'P4 · Asset System + Stores',         s:'2026-06-28',e:'2026-06-30',days:3, c:'#698593',st:'plan',  src:'§2.4 Stores',           int:'Consumable inventory absorbed'},
+  {id:'P5',  label:'P5 · Fleet + Logistics',             s:'2026-06-30',e:'2026-07-02',days:3, c:'#4a7a8e',st:'plan',  src:'§2.5 Logistics',        int:'Logistics coordination absorbed'},
+  {id:'P6',  label:'P6 · Ankaa Plus + Risk Widget',      s:'2026-07-05',e:'2026-07-06',days:2, c:'#003333',st:'plan',  src:'§4.4 Risk (lite)',      int:'Risk register widget absorbed'},
+  // Backend & Mobile
+  {id:'P7',  label:'P7 · DB Migration',                  s:'2026-07-07',e:'2026-07-09',days:3, c:'#2d5a7e',st:'plan',  src:'Internal',              int:null},
+  {id:'P8',  label:'P8 · Real-time + Email + SLA',       s:'2026-07-12',e:'2026-07-14',days:3, c:'#3b55a4',st:'plan',  src:'SLA alerts',            int:'SLA breach alerts absorbed'},
+  {id:'P9',  label:'P9 · File Uploads + SSO + DMS Base', s:'2026-07-15',e:'2026-07-16',days:2, c:'#1e3f6e',st:'plan',  src:'§4.1 §4.2 foundation', int:'DMS metadata + mail register foundation'},
+  {id:'P10', label:'P10 · Mobile App (HR screens)',       s:'2026-07-19',e:'2026-07-28',days:8, c:'#0a1e3d',st:'plan',  src:'§1.2 mobile',           int:'Mobile HR attendance/leave/tickets absorbed'},
+  // Dedicated HR
+  {id:'P11', label:'P11 · Employee Lifecycle + Recruit', s:'2026-08-02',e:'2026-08-11',days:8, c:'#3b55a4',st:'new',   src:'§1.1 §1.2 CEO gate',   int:null},
+  {id:'P12', label:'P12 · Performance + Training',        s:'2026-08-12',e:'2026-08-18',days:5, c:'#2d4b94',st:'new',   src:'§1.3',                  int:null},
+  {id:'P13', label:'P13 · Procurement + PO Mgmt',        s:'2026-08-19',e:'2026-08-24',days:4, c:'#698593',st:'new',   src:'§2.3',                  int:null},
+  {id:'P14', label:'P14 · Full DMS + Mail Register',     s:'2026-08-25',e:'2026-08-27',days:3, c:'#1e3f6e',st:'new',   src:'§4.1 §4.2 (full)',     int:null},
+  {id:'P15', label:'P15 · Audit Management',              s:'2026-08-30',e:'2026-09-01',days:3, c:'#5a7a9c',st:'new',   src:'§4.3 §4.4 (full)',     int:null},
+  {id:'P16', label:'P16 · Local Content + CSR',           s:'2026-09-02',e:'2026-09-07',days:4, c:'#003333',st:'new',   src:'§3',                    int:null},
+  {id:'P17', label:'P17 · Government Relations',          s:'2026-09-08',e:'2026-09-09',days:2, c:'#0a1e3d',st:'new',   src:'§2.2',                  int:null},
+];
+
+const SECTIONS = [
+  {title:'Phases 1–6 · Foundation — 11 Jun to 6 Jul  [P1 ✓ Done · P2 ✓ Done · P3 Active]',  phases:PHASES.slice(0,6),  base:'2026-06-11', end:'2026-07-07'},
+  {title:'Phases 7–10 · Backend, Real-time & Mobile — 7 Jul to 28 Jul', phases:PHASES.slice(6,10), base:'2026-07-07', end:'2026-07-29'},
+  {title:'Phases 11–17 · Dedicated HR & Compliance — 2 Aug to 9 Sep',  phases:PHASES.slice(10),   base:'2026-08-02', end:'2026-09-10'},
+];
+
+const TODAY = '2026-06-21';
+
+/* ── Helpers ──────────────────────────────────────────────────────────────────── */
+function dOff(base, d) {
+  return Math.round((new Date(d+'T00:00:00') - new Date(base+'T00:00:00')) / 86400000);
+}
+function fmtDate(s) {
+  return new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+}
+
+/* ── Month ruler ─────────────────────────────────────────────────────────────── */
+function buildMonthRuler(base, endStr) {
+  const total = dOff(base, endStr);
+  const ruler = document.createElement('div');
+  ruler.className = 'ruler';
+
+  const startD = new Date(base+'T00:00:00');
+  const endD   = new Date(endStr+'T00:00:00');
+
+  const mk0 = document.createElement('div');
+  mk0.className = 'ruler-mark';
+  mk0.style.left = '0%';
+  mk0.textContent = startD.toLocaleDateString('en',{month:'short',year:'2-digit'});
+  ruler.appendChild(mk0);
+
+  let cur = new Date(startD.getFullYear(), startD.getMonth()+1, 1);
+  while(cur <= endD) {
+    const off = dOff(base, cur.toISOString().slice(0,10));
+    const pct = (off/total)*100;
+    if(pct > 3 && pct < 98) {
+      const mk = document.createElement('div');
+      mk.className = 'ruler-mark';
+      mk.style.left = pct+'%';
+      mk.textContent = cur.toLocaleDateString('en',{month:'short',year:'2-digit'});
+      ruler.appendChild(mk);
+    }
+    cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+  }
+  return ruler;
+}
+
+/* ── Build Gantt section ─────────────────────────────────────────────────────── */
+function buildSection(sec) {
+  const total = dOff(sec.base, sec.end);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'sec-wrap';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'sec-title';
+  titleEl.textContent = sec.title;
+  wrap.appendChild(titleEl);
+
+  const card = document.createElement('div');
+  card.className = 'gantt-card';
+  card.appendChild(buildMonthRuler(sec.base, sec.end));
+
+  // Calculate today offset for this section
+  const todayOff = dOff(sec.base, TODAY);
+  const todayPct = (todayOff / total) * 100;
+  const showToday = todayPct >= 0 && todayPct <= 100;
+
+  sec.phases.forEach(p => {
+    const leftPct  = (dOff(sec.base, p.s) / total) * 100;
+    const widthPct = ((dOff(p.s, p.e) + 1) / total) * 100;
+    const dateLabel = p.s === p.e
+      ? fmtDate(p.s)
+      : `${fmtDate(p.s)} – ${fmtDate(p.e)}`;
+
+    const row = document.createElement('div');
+    row.className = 'gantt-row';
+
+    const lbl = document.createElement('div');
+    lbl.className = 'row-label';
+    lbl.title = p.label;
+    lbl.textContent = p.label;
+
+    const track = document.createElement('div');
+    track.className = 'row-track';
+
+    // Today line per row
+    if(showToday) {
+      const tl = document.createElement('div');
+      tl.className = 'today-line';
+      tl.style.left = todayPct.toFixed(2)+'%';
+      track.appendChild(tl);
+    }
+
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.cssText = `left:${leftPct.toFixed(2)}%;width:${Math.max(widthPct,2.2).toFixed(2)}%;background:${p.c}`;
+    bar.title = `${p.label}\n${dateLabel} · ${p.days} day${p.days>1?'s':''}${p.int?'\n↳ '+p.int:''}`;
+
+    if(widthPct > 7)      bar.textContent = `${p.days}d · ${dateLabel}`;
+    else if(widthPct > 3) bar.textContent = `${p.days}d`;
+
+    track.appendChild(bar);
+    row.appendChild(lbl);
+    row.appendChild(track);
+    card.appendChild(row);
+  });
+
+  wrap.appendChild(card);
+  return wrap;
+}
+
+const root = document.getElementById('ganttRoot');
+SECTIONS.forEach(s => root.appendChild(buildSection(s)));
+
+/* ── Summary table ───────────────────────────────────────────────────────────── */
+const TSEC = [
+  {title:'Foundation — HR requirements absorbed into existing phases (Jun – Jul 2026) · P1 ✓ · P2 ✓ · P3 Active', r:[0,6]},
+  {title:'Backend, Real-time & Mobile — additional HR requirements absorbed (Jul 2026)', r:[6,10]},
+  {title:'Dedicated HR & Compliance — features that need their own phase (Aug – Sep 2026)', r:[10,17]},
+];
+const SC = {done:'bd',active:'ba',plan:'bp',new:'bn'};
+const SL = {done:'Done',active:'In Progress',plan:'Planned',new:'HR Manual'};
+
+const tbody = document.getElementById('tBody');
+TSEC.forEach(sec => {
+  const sr = document.createElement('tr');
+  sr.className = 'sec-tr';
+  sr.innerHTML = `<td colspan="6">${sec.title}</td>`;
+  tbody.appendChild(sr);
+
+  PHASES.slice(sec.r[0], sec.r[1]).forEach(p => {
+    const dateStr    = p.s === p.e ? fmtDate(p.s) : `${fmtDate(p.s)} – ${fmtDate(p.e)}`;
+    const shortLabel = p.label.split('·')[1]?.trim() || p.label;
+    const intCell    = p.int ? `<div class="int-cell">↳ ${p.int}</div>` : '';
+    const srcCell    = p.int
+      ? `<span class="tag">${p.src}</span> <span class="int-cell" style="display:inline">absorbed</span>`
+      : `<span class="tag">${p.src}</span>`;
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><span class="pn" style="background:${p.c}">${p.id}</span></td>
+      <td style="font-weight:600">${shortLabel}${intCell}</td>
+      <td>${srcCell}</td>
+      <td style="color:var(--muted);white-space:nowrap;font-size:11px">${dateStr}</td>
+      <td style="text-align:center;font-weight:700">${p.days}</td>
+      <td><span class="badge ${SC[p.st]}">${SL[p.st]}</span></td>
+    `;
+    tbody.appendChild(row);
+  });
+});
+</script>
+</body>
+</html>

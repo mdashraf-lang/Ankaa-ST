@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>ANKAA.OM — ERP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+
+    /* ── Canvas fills the screen ── */
+    #bg-canvas{position:fixed;inset:0;z-index:0}
+
+    /* ── Vignette ── */
+    #vig{position:fixed;inset:0;z-index:1;pointer-events:none;
+      background:radial-gradient(ellipse at 50% 50%,transparent 30%,rgba(0,0,0,.7) 100%)}
+
+    /* ── Login overlay (starts invisible) ── */
+    #login-bg{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;
+      background:radial-gradient(ellipse at 50% 38%,rgba(10,22,60,.55) 0%,rgba(0,3,14,.95) 100%)}
+
+    /* ── INTRO ── */
+    #intro{position:fixed;inset:0;z-index:10;overflow:hidden;
+      display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+    #text-wrap{display:flex;flex-direction:column;align-items:center;
+      gap:clamp(6px,1.2vw,18px);will-change:transform}
+
+    /* Hidden by default — GSAP reveals them */
+    #ankaa-title,#ankaa-sub{opacity:0}
+
+    #ankaa-title{
+      font-family:'Orbitron','Trebuchet MS',sans-serif;font-weight:900;
+      font-size:clamp(46px,8.8vw,140px);letter-spacing:.09em;line-height:1;
+      white-space:nowrap;
+      background:linear-gradient(158deg,#fff 0%,#b4d0ff 28%,#fff 50%,#78a8ff 72%,#fff 100%);
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+      position:relative}
+
+    /* Glow bloom copy — use ::before to avoid content:attr issues on some browsers */
+    #ankaa-title::before{
+      content:'ANKAA.OM';position:absolute;inset:0;font-family:inherit;font-size:inherit;
+      font-weight:inherit;letter-spacing:inherit;
+      background:linear-gradient(135deg,#2255cc,#1035b0);
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+      filter:blur(22px);opacity:.4;pointer-events:none;z-index:-1}
+
+    /* Horizontal scan line inside intro */
+    #scan-line{
+      position:absolute;left:0;right:0;height:2px;
+      background:linear-gradient(90deg,transparent,rgba(130,200,255,.8),transparent);
+      top:0;opacity:0;pointer-events:none;z-index:20}
+
+    #ankaa-sub{
+      font-family:'Inter',sans-serif;font-weight:300;
+      font-size:clamp(8.5px,1.2vw,14.5px);letter-spacing:.4em;
+      color:rgba(140,188,255,.62);text-transform:uppercase}
+
+    /* ── LOGIN ── */
+    #login{position:fixed;inset:0;z-index:5;display:flex;
+      align-items:center;justify-content:center;opacity:0;pointer-events:none}
+
+    /* Subtle scanline texture */
+    #login::before{content:'';position:absolute;inset:0;pointer-events:none;
+      background:repeating-linear-gradient(0deg,rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,
+        rgba(255,255,255,.008) 2px,rgba(255,255,255,.008) 3px)}
+
+    .card{
+      position:relative;z-index:1;width:min(430px,calc(100vw - 32px));
+      background:rgba(6,14,42,.72);
+      backdrop-filter:blur(36px) saturate(1.6);
+      -webkit-backdrop-filter:blur(36px) saturate(1.6);
+      border:1px solid rgba(95,150,255,.14);border-radius:22px;
+      padding:40px 36px 34px;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),
+        0 50px 120px rgba(0,0,20,.72),0 0 80px rgba(25,75,220,.12)}
+
+    .card::before{content:'';position:absolute;top:0;left:8%;right:8%;height:1px;
+      background:linear-gradient(90deg,transparent,rgba(110,175,255,.55),transparent);border-radius:999px}
+
+    .card-logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;
+      letter-spacing:.1em;
+      background:linear-gradient(135deg,#fff 10%,#a0c8ff 55%,#6aabff 100%);
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+      text-align:center;margin-bottom:5px}
+
+    .card-tagline{font-size:9.5px;font-weight:400;letter-spacing:.30em;text-transform:uppercase;
+      color:rgba(125,175,255,.42);text-align:center;margin-bottom:26px}
+
+    .card-divider{height:1px;margin-bottom:24px;
+      background:linear-gradient(90deg,transparent,rgba(100,160,255,.18),transparent)}
+
+    .field{margin-bottom:17px}
+
+    .field-label{display:block;font-size:10.5px;font-weight:500;letter-spacing:.14em;
+      text-transform:uppercase;color:rgba(135,182,255,.58);margin-bottom:7px}
+
+    .field-wrap{position:relative}
+
+    .field-input{
+      width:100%;height:46px;background:rgba(10,22,58,.7);
+      border:1px solid rgba(88,142,255,.15);border-radius:11px;
+      padding:0 44px 0 16px;font-size:14px;color:#dce8ff;
+      font-family:'Inter',sans-serif;outline:none;
+      transition:border-color 180ms ease-out,background 180ms ease-out,box-shadow 180ms ease-out}
+    .field-input::placeholder{color:rgba(110,160,255,.22)}
+    .field-input:focus{
+      border-color:rgba(88,155,255,.55);background:rgba(16,35,88,.8);
+      box-shadow:0 0 0 3px rgba(55,125,255,.13)}
+    .field-input.err{border-color:rgba(248,113,113,.48)}
+
+    .field-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);
+      color:rgba(110,165,255,.38);pointer-events:none;display:flex;align-items:center}
+
+    .pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;color:rgba(110,170,255,.36);
+      display:flex;align-items:center;padding:5px;border-radius:6px;
+      transition:color 150ms ease-out,background 150ms ease-out}
+    .pw-toggle:hover{color:rgba(150,210,255,.9);background:rgba(100,160,255,.08)}
+
+    .field-error{font-size:11px;color:#f87171;margin-top:5px;display:none}
+
+    .form-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+
+    .check-wrap{display:flex;align-items:center;gap:7px;cursor:pointer}
+    .check-wrap input{width:14px;height:14px;accent-color:#3b82f6;cursor:pointer}
+    .check-label{font-size:12px;color:rgba(135,182,255,.5);user-select:none}
+
+    .forgot-link{font-size:12px;color:rgba(100,165,255,.62);text-decoration:none;
+      transition:color 150ms ease-out}
+    .forgot-link:hover{color:rgba(160,215,255,.95)}
+
+    .btn{
+      width:100%;height:48px;
+      background:linear-gradient(135deg,#1a48d0 0%,#2462ea 48%,#0ea0d2 100%);
+      border:none;border-radius:11px;color:#fff;font-family:'Inter',sans-serif;
+      font-size:13px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+      cursor:pointer;overflow:hidden;position:relative;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      transition:transform 150ms ease-out,box-shadow 200ms ease-out;
+      box-shadow:0 4px 22px rgba(28,90,240,.38),inset 0 1px 0 rgba(255,255,255,.12)}
+    .btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+      transition:left 380ms ease-out}
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 34px rgba(28,90,240,.52)}
+    .btn:hover::before{left:100%}
+    .btn:active{transform:translateY(0)}
+    .btn:disabled{opacity:.75;cursor:not-allowed;transform:none}
+    .btn.loading .btn-text{display:none}
+    .btn.loading .spinner{display:block}
+
+    .spinner{width:16px;height:16px;display:none;border:2px solid rgba(255,255,255,.28);
+      border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .card-footer{margin-top:22px;display:flex;flex-direction:column;align-items:center;gap:10px}
+    .status-row{display:flex;align-items:center;gap:7px}
+    .status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;
+      background:#22c55e;box-shadow:0 0 7px #22c55e;animation:pdot 2.2s ease-in-out infinite}
+    @keyframes pdot{0%,100%{opacity:1;box-shadow:0 0 7px #22c55e}50%{opacity:.55;box-shadow:0 0 14px #22c55e}}
+    .status-text{font-size:10.5px;color:rgba(135,182,255,.32)}
+    .copyright{font-size:10px;color:rgba(100,148,220,.22);text-align:center}
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div id="vig"></div>
+<div id="login-bg"></div>
+
+<!-- ══ SCREEN 1 — INTRO ══ -->
+<div id="intro">
+  <div id="scan-line"></div>
+  <div id="text-wrap">
+    <h1 id="ankaa-title">ANKAA.<span id="o-letter">O</span>M</h1>
+    <p  id="ankaa-sub">Enterprise Resource Planning</p>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2 — LOGIN ══ -->
+<div id="login">
+  <div class="card">
+    <div class="card-logo">ANKAA.OM</div>
+    <div class="card-tagline">Enterprise Resource Planning</div>
+    <div class="card-divider"></div>
+
+    <form id="login-form" novalidate>
+      <div class="field">
+        <label class="field-label" for="email">Email Address</label>
+        <div class="field-wrap">
+          <input class="field-input" id="email" type="email" placeholder="you@ankaa.om">
+          <span class="field-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><polyline points="2,4 12,13 22,4"/></svg>
+          </span>
+        </div>
+        <div class="field-error" id="email-err">Please enter a valid email address.</div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="password">Password</label>
+        <div class="field-wrap">
+          <input class="field-input" id="password" type="password" placeholder="••••••••••">
+          <button type="button" class="pw-toggle" id="pw-toggle">
+            <svg id="eye-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="display:none"><path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
+        <div class="field-error" id="pw-err">Password is required.</div>
+      </div>
+
+      <div class="form-row">
+        <label class="check-wrap">
+          <input type="checkbox" id="remember">
+          <span class="check-label">Remember this device</span>
+        </label>
+        <a href="#" class="forgot-link" id="forgot-link">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn" id="signin-btn">
+        <span class="btn-text">Sign In</span>
+        <div class="spinner"></div>
+      </button>
+    </form>
+
+    <div class="card-footer">
+      <div class="status-row">
+        <span class="status-dot"></span>
+        <span class="status-text">All systems operational</span>
+      </div>
+      <p class="copyright">&copy; 2026 Ankaa Science &amp; Technology. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+
+<!-- GSAP — loaded synchronously before the inline script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ══════════════════════════════════════
+     CANVAS — STARS + ROCKETS
+  ══════════════════════════════════════ */
+  var canvas  = document.getElementById('bg-canvas');
+  var ctx     = canvas.getContext('2d');
+  var stars   = [];
+  var rockets = [];
+  var canvasOpacity = 1;   /* tweened by GSAP */
+  var introPhase    = true;
+  var startTime     = performance.now();
+  var W, H, CX, CY;
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    CX = W / 2;
+    CY = H / 2;
+    buildRockets();
+  }
+
+  function buildStars() {
+    var N = Math.min(280, Math.round(W * H / 6200));
+    stars = [];
+    for (var i = 0; i < N; i++) {
+      var d = Math.random();
+      var a = Math.random() * 6.2832;
+      var mR = Math.hypot(W, H) * 0.58;
+      stars.push({
+        angle : a,
+        r     : Math.random() * mR,
+        maxR  : mR,
+        speed : 0.08 + d * 0.24,
+        size  : 0.5  + d * 2.0,
+        alpha : 0.18 + d * 0.60,
+        phase : Math.random() * 6.2832,
+        blue  : Math.random() > 0.80
+      });
+    }
+  }
+
+  function buildRockets() {
+    rockets = [
+      { sx:-90,         sy:H*.74, ex:W+90,   ey:H*.05, t0:180, t1:800, sz:18 },
+      { sx:W+90,        sy:H*.27, ex:-90,    ey:H*.84, t0:370, t1:960, sz:15 },
+      { sx:W*.08,       sy:-70,   ex:W*.92,  ey:H+70,  t0:80,  t1:650, sz:12 }
+    ];
+  }
+
+  function drawFrame() {
+    requestAnimationFrame(drawFrame);
+    var ms = performance.now() - startTime;
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* Dark background so stars are visible even without canvas bg-color */
+    ctx.fillStyle = 'rgba(0,0,0,0)';   /* canvas bg is just black page */
+
+    ctx.globalAlpha = Math.max(0, Math.min(1, canvasOpacity));
+
+    /* Stars */
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      s.r += s.speed;
+      if (s.r > s.maxR) { s.r = 1; s.angle = Math.random() * 6.2832; }
+      var tw = 0.70 + 0.30 * Math.sin(ms * 0.0022 + s.phase);
+      ctx.beginPath();
+      ctx.arc(CX + Math.cos(s.angle) * s.r, CY + Math.sin(s.angle) * s.r, s.size, 0, 6.2832);
+      ctx.fillStyle = s.blue
+        ? 'rgba(170,210,255,' + (s.alpha * tw) + ')'
+        : 'rgba(255,255,255,' + (s.alpha * tw) + ')';
+      ctx.fill();
+    }
+
+    /* Rockets (intro only) */
+    if (introPhase) {
+      for (var j = 0; j < rockets.length; j++) {
+        var r = rockets[j];
+        if (ms < r.t0 || ms > r.t1 + 100) continue;
+        var p   = Math.max(0, Math.min(1, (ms - r.t0) / (r.t1 - r.t0)));
+        var opa = p < 0.12 ? p / 0.12 : p > 0.88 ? (1 - p) / 0.12 : 1;
+        drawRocket(r, p, opa);
+      }
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  function drawRocket(r, p, opa) {
+    var x  = r.sx + (r.ex - r.sx) * p;
+    var y  = r.sy + (r.ey - r.sy) * p;
+    var ag = Math.atan2(r.ey - r.sy, r.ex - r.sx);
+    var sz = r.sz;
+
+    ctx.save();
+    ctx.globalAlpha *= opa;
+    ctx.translate(x, y);
+    ctx.rotate(ag);
+
+    /* Fire trail */
+    var tL  = sz * 5.5;
+    var tGr = ctx.createLinearGradient(-tL, 0, 0, 0);
+    tGr.addColorStop(0,    'rgba(255,60,0,0)');
+    tGr.addColorStop(0.35, 'rgba(255,130,20,.38)');
+    tGr.addColorStop(0.78, 'rgba(255,210,60,.72)');
+    tGr.addColorStop(1,    'rgba(255,248,190,.95)');
+    ctx.beginPath();
+    ctx.moveTo(0, -sz*.26); ctx.lineTo(-tL, 0); ctx.lineTo(0, sz*.26);
+    ctx.closePath(); ctx.fillStyle = tGr; ctx.fill();
+
+    /* Wispy secondary trail */
+    var wGr = ctx.createLinearGradient(-tL*1.35, 0, 0, 0);
+    wGr.addColorStop(0, 'rgba(255,100,0,0)');
+    wGr.addColorStop(1, 'rgba(255,180,50,.18)');
+    ctx.beginPath();
+    ctx.moveTo(0,-sz*.12); ctx.lineTo(-tL*1.35,0); ctx.lineTo(0,sz*.12);
+    ctx.closePath(); ctx.fillStyle = wGr; ctx.fill();
+
+    /* Body */
+    ctx.beginPath(); ctx.ellipse(sz*.12, 0, sz*.9, sz*.28, 0, 0, 6.2832);
+    ctx.fillStyle = '#ccdae8'; ctx.fill();
+
+    /* Hull glint */
+    ctx.beginPath(); ctx.ellipse(sz*.55, -sz*.07, sz*.37, sz*.13, -.22, 0, 6.2832);
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fill();
+
+    /* Wings */
+    [-1, 1].forEach(function(s) {
+      ctx.beginPath();
+      ctx.moveTo(-sz*.15, 0); ctx.lineTo(-sz*.68, s*sz*.62); ctx.lineTo(-sz*.08, s*sz*.30);
+      ctx.closePath(); ctx.fillStyle = '#8aa4be'; ctx.fill();
+    });
+
+    /* Engine glow */
+    var eg = ctx.createRadialGradient(-sz*.78,0,0,-sz*.78,0,sz*.52);
+    eg.addColorStop(0,    'rgba(255,195,55,.98)');
+    eg.addColorStop(0.45, 'rgba(255,88,18,.56)');
+    eg.addColorStop(1,    'rgba(255,28,0,0)');
+    ctx.beginPath(); ctx.arc(-sz*.78, 0, sz*.52, 0, 6.2832);
+    ctx.fillStyle = eg; ctx.fill();
+
+    ctx.restore();
+  }
+
+  /* ══════════════════════════════════════
+     STARTUP
+  ══════════════════════════════════════ */
+  resize();
+  buildStars();
+  window.addEventListener('resize', resize);
+  drawFrame(); /* canvas loop starts IMMEDIATELY */
+
+  /* ── GSAP Timeline ──────────────────── */
+  var introEl  = document.getElementById('intro');
+  var scanLine = document.getElementById('scan-line');
+  var textWrap = document.getElementById('text-wrap');
+  var titleEl  = document.getElementById('ankaa-title');
+  var subEl    = document.getElementById('ankaa-sub');
+  var loginEl  = document.getElementById('login');
+  var loginBg  = document.getElementById('login-bg');
+
+  /* Sync GSAP with our CSS initial state */
+  gsap.set(titleEl,  { opacity: 0 });
+  gsap.set(subEl,    { opacity: 0, y: 14 });
+  gsap.set(loginEl,  { opacity: 0 });
+  gsap.set(loginBg,  { opacity: 0 });
+  gsap.set(scanLine, { opacity: 0, top: 0 });
+
+  /* Compute zoom origin relative to the #text-wrap element */
+  function oOrigin() {
+    var oR = document.getElementById('o-letter').getBoundingClientRect();
+    var wR = textWrap.getBoundingClientRect();
+    return ((oR.left + oR.width  * 0.5) - wR.left).toFixed(1) + 'px '
+         + ((oR.top  + oR.height * 0.5) - wR.top).toFixed(1)  + 'px';
+  }
+
+  var tl = gsap.timeline();
+
+  /* 0.08 s — title fades in */
+  tl.to(titleEl, { opacity: 1, duration: 0.42, ease: 'power2.out' }, 0.08);
+
+  /* 0.12 s — scan line sweeps across title area */
+  tl.to(scanLine, {
+    opacity: 1, top: '100%',
+    duration: 0.52, ease: 'power1.inOut',
+    onComplete: function() { gsap.set(scanLine, { opacity: 0 }); }
+  }, 0.12);
+
+  /* 0.32 s — subtitle rises */
+  tl.to(subEl, { opacity: 1, y: 0, duration: 0.38, ease: 'power2.out' }, 0.32);
+
+  /* 0.97 s — pin transform-origin to centre of the "O" (font rendered by now) */
+  tl.call(function() {
+    gsap.set(textWrap, { transformOrigin: oOrigin() });
+  }, null, 0.97);
+
+  /* 1.00 s — RAPID ZOOM INTO THE "O" */
+  tl.to(textWrap, { scale: 55, duration: 0.56, ease: 'power4.in' }, 1.00);
+
+  /* 1.22 s — intro screen fades out */
+  tl.to(introEl, { opacity: 0, duration: 0.30, ease: 'power1.in' }, 1.22);
+
+  /* 1.26 s — canvas dims + login backdrop fades in */
+  tl.to({ v: 1 }, {
+    v: 0,
+    duration: 0.52,
+    ease: 'power2.inOut',
+    onUpdate: function() { canvasOpacity = this.targets()[0].v * 0.15; }
+  }, 1.26);
+
+  tl.to(loginBg, { opacity: 1, duration: 0.48, ease: 'power2.inOut' }, 1.28);
+
+  /* 1.38 s — login card slides in */
+  tl.fromTo(loginEl,
+    { opacity: 0, y: 28 },
+    {
+      opacity: 1, y: 0, duration: 0.44, ease: 'power2.out',
+      onStart: function() {
+        loginEl.style.pointerEvents = 'auto';
+        introPhase = false;
+        setTimeout(function() {
+          document.getElementById('email').focus();
+        }, 60);
+      }
+    }, 1.38
+  );
+
+  /* Recalculate on resize */
+  window.addEventListener('resize', function() {
+    if (introPhase) gsap.set(textWrap, { transformOrigin: oOrigin() });
+  });
+
+  /* ══════════════════════════════════════
+     FORM INTERACTIONS
+  ══════════════════════════════════════ */
+
+  /* Password toggle */
+  var pwEl = document.getElementById('password');
+  document.getElementById('pw-toggle').addEventListener('click', function() {
+    var show = pwEl.type === 'password';
+    pwEl.type = show ? 'text' : 'password';
+    document.getElementById('eye-on').style.display  = show ? 'none' : '';
+    document.getElementById('eye-off').style.display = show ? ''     : 'none';
+    pwEl.focus();
+  });
+
+  /* Validation */
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function setErr(input, errId, ok) {
+    input.classList.toggle('err', !ok);
+    document.getElementById(errId).style.display = ok ? 'none' : 'block';
+    return ok;
+  }
+
+  document.getElementById('email').addEventListener('blur', function() {
+    setErr(this, 'email-err', emailRe.test(this.value.trim()));
+  });
+  pwEl.addEventListener('blur', function() {
+    setErr(this, 'pw-err', this.value.length > 0);
+  });
+
+  /* Submit */
+  document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var eEl = document.getElementById('email');
+    var pEl = document.getElementById('password');
+    var ok  = setErr(eEl, 'email-err', emailRe.test(eEl.value.trim()));
+    ok     &= setErr(pEl, 'pw-err', pEl.value.length > 0);
+    if (!ok) return;
+    var btn = document.getElementById('signin-btn');
+    btn.classList.add('loading'); btn.disabled = true;
+    /* Replace with real fetch() auth */
+    setTimeout(function() {
+      btn.classList.remove('loading'); btn.disabled = false;
+    }, 2000);
+  });
+
+  document.getElementById('forgot-link').addEventListener('click', function(e) {
+    e.preventDefault();
+    alert('A password reset link will be sent to your registered email.');
+  });
+
+}());
+</script>
+</body>
+</html>

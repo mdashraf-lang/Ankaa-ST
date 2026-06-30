@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local PGlite database (dev only, not for version control)
+.local-db/
+
+# temp files
+/tmp/
