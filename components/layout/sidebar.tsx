@@ -48,7 +48,7 @@ const NAV: NavItem[] = [
   { type: "section", label: "My Space" },
   { label: "My Profile",   href: "/people/profile",  icon: UserCircle  },
   { label: "My Leave",     href: "/people/leave",    icon: Umbrella    },
-  { label: "My Tasks",     href: "/tasks/list",      icon: ListChecks  },
+  { label: "Board",         href: "/tasks/list",      icon: ListChecks  },
   { label: "My Invoices",  href: "/invoices",        icon: Receipt     },
   { label: "Training",     href: "/training",        icon: BookOpen,   allowedRoles: ['trainee'] },
 

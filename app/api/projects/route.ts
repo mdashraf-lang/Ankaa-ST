@@ -19,20 +19,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ projects: data || [] })
   }
 
-  // Regular users: only projects they're members of
-  const { data, error } = await supabaseAdmin
+  // Regular users: get all projects they belong to, with full member list
+  const { data: memberOf, error: memberError } = await supabaseAdmin
     .from('project_members')
-    .select(
-      'project_id, role, projects!inner(id, name, description, created_at, updated_at, created_by)'
-    )
+    .select('project_id, role')
     .eq('user_id', userId)
+
+  if (memberError) return NextResponse.json({ error: memberError.message }, { status: 500 })
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const projectIds = (memberOf ?? []).map((m: any) => m.project_id as string)
+  if (projectIds.length === 0) return NextResponse.json({ projects: [] })
+
+  const { data, error } = await supabaseAdmin
+    .from('projects')
+    .select('*, project_members(user_id, role, profiles:user_id(id, full_name, email))')
+    .in('id', projectIds)
+    .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const projects = (data || []).map((m: any) => ({
-    ...m.projects,
-    member_role: m.role,
+  const projects = (data ?? []).map((p: any) => ({
+    ...p,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    member_role: (memberOf ?? []).find((m: any) => m.project_id === p.id)?.role ?? 'member',
   }))
   return NextResponse.json({ projects })
 }
