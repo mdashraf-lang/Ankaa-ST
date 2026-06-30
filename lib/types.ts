@@ -1,5 +1,4 @@
 export type UserRole =
-  | "super_admin"
   | "admin"
   | "ceo"
   | "md"
@@ -540,7 +539,16 @@ export interface Invoice {
     | null
   cost_center: string | null
   description: string | null
+  currency: string | null
+  bill_number: string | null
+  paid_by: string | null
+  fuel_amount: number | null
+  materials_amount: number | null
+  transportation_amount: number | null
+  food_amount: number | null
+  others_amount: number | null
   created_at: string
+  updated_at?: string | null
 }
 
 export interface MeetingRoom {

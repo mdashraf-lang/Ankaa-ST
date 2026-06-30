@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db as supabaseAdmin } from '@/lib/db'
 import { isAdmin } from '@/lib/auth'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get('x-user-id')!
@@ -38,14 +39,23 @@ export async function POST(req: NextRequest) {
     currency,
     bill_number,
     paid_by,
+    status,
+    fuel_amount,
+    materials_amount,
+    transportation_amount,
+    food_amount,
+    others_amount,
   } = body
 
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
+  const now = new Date().toISOString()
   const { data, error } = await supabaseAdmin
     .from('invoices')
     .insert({
+      id: randomUUID(),
       user_id: userId,
+      created_at: now,
       name,
       amount: amount || null,
       transaction_date: transaction_date || null,
@@ -55,7 +65,12 @@ export async function POST(req: NextRequest) {
       currency: currency || 'OMR',
       bill_number: bill_number || null,
       paid_by: paid_by || null,
-      status: 'unpaid',
+      status: status || 'unpaid',
+      fuel_amount: fuel_amount ?? 0,
+      materials_amount: materials_amount ?? 0,
+      transportation_amount: transportation_amount ?? 0,
+      food_amount: food_amount ?? 0,
+      others_amount: others_amount ?? 0,
     })
     .select()
     .single()
