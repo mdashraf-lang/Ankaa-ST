@@ -592,6 +592,7 @@ export interface KanbanCard {
   due_date: string | null
   priority: "low" | "medium" | "high" | "urgent" | null
   labels: string[]
+  assignees?: { user_id: string; full_name: string | null }[]
 }
 
 export interface KanbanList {

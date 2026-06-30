@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db as supabaseAdmin } from '@/lib/db'
 import { isAdmin } from '@/lib/auth'
+import { randomUUID } from 'crypto'
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get('x-user-id')!
@@ -39,22 +40,37 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const userId = req.headers.get('x-user-id')!
   const body = await req.json()
-  const { name, description } = body
+  const { name, description, section, memberIds } = body
 
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
+  const now = new Date().toISOString()
   const { data, error } = await supabaseAdmin
     .from('projects')
-    .insert({ name, description: description || null, created_by: userId })
+    .insert({
+      id: randomUUID(), name, description: description || null,
+      created_by: userId, created_at: now,
+      section: section || 'current',
+    })
     .select()
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
-  // Add creator as member with owner role
+  // Add creator as owner
   await supabaseAdmin
     .from('project_members')
-    .insert({ project_id: data.id, user_id: userId, role: 'owner' })
+    .insert({ id: randomUUID(), project_id: data.id, user_id: userId, role: 'owner', joined_at: now })
+
+  // Add invited contributors
+  if (Array.isArray(memberIds) && memberIds.length > 0) {
+    const unique = (memberIds as string[]).filter(id => id !== userId)
+    if (unique.length > 0) {
+      await supabaseAdmin.from('project_members').insert(
+        unique.map(uid => ({ id: randomUUID(), project_id: data.id, user_id: uid, role: 'member', joined_at: now }))
+      )
+    }
+  }
 
   return NextResponse.json({ project: data })
 }

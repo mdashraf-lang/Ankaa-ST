@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db as supabaseAdmin } from '@/lib/db'
+import { randomUUID } from 'crypto'
 
 export async function GET(
   _req: NextRequest,
@@ -10,7 +11,7 @@ export async function GET(
   const { data, error } = await supabaseAdmin
     .from('project_lists')
     .select(
-      '*, project_cards(id, title, description, position, completed, due_date, labels, project_card_members(user_id, profiles:user_id(id, full_name)))'
+      '*, project_cards(id, title, description, position, completed, due_date, labels, priority, project_card_members(user_id, profiles:user_id(id, full_name)))'
     )
     .eq('project_id', id)
     .order('position')
@@ -37,7 +38,7 @@ export async function POST(
 
   const { data, error } = await supabaseAdmin
     .from('project_lists')
-    .insert({ project_id: id, title, position: position ?? 0 })
+    .insert({ id: randomUUID(), project_id: id, title, position: position ?? 0, created_at: new Date().toISOString() })
     .select()
     .single()
 
