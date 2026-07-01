@@ -16,7 +16,8 @@ interface Rocket {
 }
 
 // ── Canvas helpers ────────────────────────────────────────────────────────────
-function createStars(W: number, H: number): Star[] {
+function createStars(W: number, H: number): 
+Star[] {
   const N = Math.min(260, Math.round((W * H) / 6400))
   return Array.from({ length: N }, () => {
     const d = Math.random()
