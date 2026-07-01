@@ -886,7 +886,7 @@ export default function ProfilePage() {
   // ── Regular profile ────────────────────────────────────────────────────────
   return (
     <>
-      <PageHeader title="My Profile" subtitle="Manage your personal information and account settings" />
+      <PageHeader title="My Profile" />
       {error && <p className="text-sm mb-4 px-4 py-2 rounded-lg" style={{ background: "#FFF0F0", color: "#DC2626" }}>{error}</p>}
       <RegularProfile
         profile={profile}

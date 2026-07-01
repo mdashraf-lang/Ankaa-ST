@@ -808,7 +808,7 @@ export default function MyInvoicesPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <PageHeader title="My Invoices" subtitle="Upload receipts — AI extracts all fields automatically"/>
+        <PageHeader title="My Invoices" />
         <Button variant="primary" size="md" onClick={()=>{setEditing(null);setModal(true)}}>
           <Plus size={16}/> New Invoice
         </Button>

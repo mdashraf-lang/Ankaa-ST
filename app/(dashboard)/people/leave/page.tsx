@@ -103,7 +103,6 @@ export default function LeavePage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Leave Management"
-        subtitle="Track your leave balances and manage requests"
         actions={
           <Link href="/people/leave/apply">
             <Button variant="primary" size="md"><Plus size={16} /> Apply for Leave</Button>
