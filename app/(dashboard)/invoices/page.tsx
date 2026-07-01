@@ -27,21 +27,7 @@ const CURRENCY_RATES: Record<string,number> = {
   JOD:1.41,EGP:0.0081,TRY:0.0117,JPY:0.0026,CNY:0.053,
   AUD:0.250,CAD:0.285,CHF:0.432,SGD:0.286,OMR:1.0,
 }
-const CATEGORIES = [
-  { key:"fuel",           label:"Fuel",           icon:"⛽" },
-  { key:"materials",      label:"Materials",       icon:"📦" },
-  { key:"transportation", label:"Transportation",  icon:"🚚" },
-  { key:"food",           label:"Food",            icon:"🍽️" },
-  { key:"others",         label:"Others",          icon:"📋" },
-]
 const PAID_BY_OPTIONS = ["Office card","CEO","IT department","Personal","Company account"]
-const CATEGORY_COLOR: Record<string,{bg:string;color:string}> = {
-  fuel:           {bg:"#FFF8E6",color:"#D97706"},
-  materials:      {bg:"#EFF4FF",color:"#2563EB"},
-  transportation: {bg:"#ECFDF5",color:"#059669"},
-  food:           {bg:"#FFF0F0",color:"#DC2626"},
-  others:         {bg:"#F5F3FF",color:"#7C3AED"},
-}
 
 type FilterTab = "all"|"paid"|"unpaid"
 
@@ -56,18 +42,16 @@ function fmtAmt(amount:number|null|undefined,currency="OMR") {
 
 // ── Extracted invoice from AI ─────────────────────────────────────────────────
 interface AIInvoice {
-  invoice_name: string
-  bill_number:  string
-  date:         string
-  currency:     string
-  total_amount: number
-  exchange_rate:number|null
-  expense_category: string
-  breakdown:    Record<string,number>
-  cost_center:  string
-  description:  string
-  paid_by:      string
-  status:       "paid"|"unpaid"
+  invoice_name:  string
+  bill_number:   string
+  date:          string
+  currency:      string
+  total_amount:  number
+  exchange_rate: number|null
+  cost_center:   string
+  description:   string
+  paid_by:       string
+  status:        "paid"|"unpaid"
 }
 
 // ── Invoice form shape ────────────────────────────────────────────────────────
@@ -80,27 +64,17 @@ interface InvoiceForm {
   currency:         string
   amount:           string
   exchange_rate:    string
-  expense_category: string
   cost_center:      string
   description:      string
-  fuel_amount:           string
-  materials_amount:      string
-  transportation_amount: string
-  food_amount:           string
-  others_amount:         string
 }
 
 const BLANK_FORM: InvoiceForm = {
   name:"",paid_by:"Office card",status:"unpaid",bill_number:"",
   transaction_date:"",currency:"OMR",amount:"",exchange_rate:"",
-  expense_category:"others",cost_center:"",description:"",
-  fuel_amount:"0",materials_amount:"0",transportation_amount:"0",
-  food_amount:"0",others_amount:"0",
+  cost_center:"",description:"",
 }
 
 function aiToForm(ai: AIInvoice): InvoiceForm {
-  const amt = ai.total_amount ?? 0
-  const cat = ai.expense_category ?? "others"
   return {
     name:             ai.invoice_name ?? "",
     paid_by:          ai.paid_by      ?? "Office card",
@@ -108,16 +82,10 @@ function aiToForm(ai: AIInvoice): InvoiceForm {
     bill_number:      ai.bill_number  ?? "",
     transaction_date: ai.date         ?? "",
     currency:         ai.currency     ?? "OMR",
-    amount:           String(amt),
+    amount:           String(ai.total_amount ?? ""),
     exchange_rate:    ai.exchange_rate != null ? String(ai.exchange_rate) : "",
-    expense_category: cat,
     cost_center:      ai.cost_center  ?? "",
     description:      ai.description  ?? "",
-    fuel_amount:           String(ai.breakdown?.fuel           ?? (cat==="fuel"           ? amt : 0)),
-    materials_amount:      String(ai.breakdown?.materials      ?? (cat==="materials"      ? amt : 0)),
-    transportation_amount: String(ai.breakdown?.transportation ?? (cat==="transportation" ? amt : 0)),
-    food_amount:           String(ai.breakdown?.food           ?? (cat==="food"           ? amt : 0)),
-    others_amount:         String(ai.breakdown?.others         ?? (cat==="others"         ? amt : 0)),
   }
 }
 
@@ -178,14 +146,8 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
         currency:         editing.currency ?? "OMR",
         amount:           String(editing.amount ?? ""),
         exchange_rate:    String((editing as Record<string,unknown>).exchange_rate ?? ""),
-        expense_category: editing.expense_category ?? "others",
         cost_center:      editing.cost_center ?? "",
         description:      editing.description ?? "",
-        fuel_amount:           String(editing.fuel_amount ?? 0),
-        materials_amount:      String(editing.materials_amount ?? 0),
-        transportation_amount: String(editing.transportation_amount ?? 0),
-        food_amount:           String(editing.food_amount ?? 0),
-        others_amount:         String(editing.others_amount ?? 0),
       }])
       // Load existing PDF preview if stored path exists
       const rcpt = (editing as Record<string,unknown>).invoice_receipt_path as string|null
@@ -271,29 +233,6 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
   function setForm(idx: number, patch: Partial<InvoiceForm>) {
     setForms(prev => prev.map((f,i) => i === idx ? {...f,...patch} : f))
   }
-  function handleAmountChange(idx:number, val:string) {
-    const amt = parseFloat(val)||0
-    const cat = forms[idx].expense_category
-    setForm(idx,{
-      amount:val,
-      fuel_amount:           cat==="fuel"           ?String(amt):"0",
-      materials_amount:      cat==="materials"      ?String(amt):"0",
-      transportation_amount: cat==="transportation"  ?String(amt):"0",
-      food_amount:           cat==="food"           ?String(amt):"0",
-      others_amount:         cat==="others"         ?String(amt):"0",
-    })
-  }
-  function handleCategoryChange(idx:number, cat:string) {
-    const amt = parseFloat(forms[idx].amount)||0
-    setForm(idx,{
-      expense_category:cat,
-      fuel_amount:           cat==="fuel"           ?String(amt):"0",
-      materials_amount:      cat==="materials"      ?String(amt):"0",
-      transportation_amount: cat==="transportation"  ?String(amt):"0",
-      food_amount:           cat==="food"           ?String(amt):"0",
-      others_amount:         cat==="others"         ?String(amt):"0",
-    })
-  }
 
   // ── Upload file to storage ─────────────────────────────────────────────────
   async function uploadFile(file:File, type:"receipt"|"bank") {
@@ -315,6 +254,10 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
 
     if (toSave.length === 0) { toast.error("Select at least one invoice"); return }
     if (!toSave[0].name.trim()) { setFormError("Invoice name is required"); return }
+    const hasReceipt = !!pdfFile || !!(editing && (editing as Record<string,unknown>).invoice_receipt_path)
+    const hasBank    = !!bankFile || !!(editing && (editing as Record<string,unknown>).bank_screenshot_path)
+    if (!hasReceipt) { setFormError("Invoice Receipt PDF is required"); return }
+    if (!hasBank)    { setFormError("Bank Statement is required"); return }
     setFormError(null); setSubmitting(true)
 
     try {
@@ -345,16 +288,10 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
           currency:         form.currency,
           amount:           form.amount ? parseFloat(form.amount) : null,
           exchange_rate:    form.exchange_rate ? parseFloat(form.exchange_rate) : null,
-          expense_category: form.expense_category || null,
           cost_center:      form.cost_center || null,
           description:      form.description || null,
           invoice_receipt_path: receiptPath,
           bank_screenshot_path: bankPath,
-          fuel_amount:           parseFloat(form.fuel_amount)||0,
-          materials_amount:      parseFloat(form.materials_amount)||0,
-          transportation_amount: parseFloat(form.transportation_amount)||0,
-          food_amount:           parseFloat(form.food_amount)||0,
-          others_amount:         parseFloat(form.others_amount)||0,
         }
         let result: Invoice
         if (isEdit && !isMulti) {
@@ -430,153 +367,149 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
         {/* ── Body: two columns ──────────────────────────────────────────── */}
         <div className="flex flex-1 overflow-hidden">
 
-          {/* ── LEFT: PDF panel ──────────────────────────────────────────── */}
+          {/* ── LEFT: Documents panel ────────────────────────────────────── */}
           <div className="w-[42%] flex-shrink-0 flex flex-col border-r overflow-hidden"
             style={{borderColor:"var(--surface-border)",background:"var(--surface-subtle)"}}>
 
-            {/* PDF drop zone / preview */}
-            <div className="flex-1 overflow-hidden relative">
-              {pdfPreviewUrl ? (
-                /* PDF preview iframe */
-                <iframe
-                  src={pdfPreviewUrl}
-                  className="w-full h-full border-0"
-                  title="Invoice PDF preview"
-                />
-              ) : (
-                /* Drop zone */
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-4 m-4 rounded-[var(--radius-xl)] border-2 border-dashed transition-all cursor-pointer"
-                  style={{
-                    borderColor:dragging?"#7C3AED":"var(--surface-border)",
-                    background:dragging?"#FAF5FF":"transparent",
-                  }}
-                  onClick={()=>pdfInputRef.current?.click()}
-                  onDragOver={e=>{e.preventDefault();setDragging(true)}}
-                  onDragLeave={()=>setDragging(false)}
-                  onDrop={handleDrop}
-                >
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                    style={{background:"#EEF1F8"}}>
-                    <FilePdf size={32} style={{color:"#1B2A5E"}}/>
+            {/* ── Invoice Receipt (top, mandatory) ─────────────────────────── */}
+            <div className="flex flex-col flex-1 overflow-hidden border-b" style={{borderColor:"var(--surface-border)"}}>
+              {/* Label */}
+              <div className="flex items-center gap-2 px-3 pt-3 pb-2 flex-shrink-0">
+                <FilePdf size={14} style={{color:"#1B2A5E"}}/>
+                <span className="text-xs font-bold" style={{color:"var(--text-primary)"}}>Invoice Receipt</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{background:"#FFF0F0",color:"#DC2626"}}>Required</span>
+                {pdfPreviewUrl && (
+                  <div className="ml-auto flex items-center gap-1">
+                    <button onClick={()=>pdfInputRef.current?.click()}
+                      className="text-[10px] font-medium px-2 py-0.5 rounded hover:bg-[#EEF1F8]"
+                      style={{color:"var(--text-muted)"}}>Change</button>
+                    <button onClick={()=>{setPdfFile(null);setPdfPreviewUrl(null);setExtractStep("idle");setAiInvoices([])}}
+                      className="w-5 h-5 flex items-center justify-center rounded hover:bg-[#FFF0F0]"
+                      style={{color:"#DC2626"}}><X size={11}/></button>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold" style={{color:"var(--text-primary)"}}>
-                      Drop invoice PDF here
-                    </p>
-                    <p className="text-xs mt-1" style={{color:"var(--text-muted)"}}>
-                      or click to browse · max 20 MB
-                    </p>
+                )}
+              </div>
+
+              {/* Preview or drop zone */}
+              <div className="flex-1 overflow-hidden relative mx-3 mb-2 rounded-[var(--radius-lg)]"
+                style={{minHeight:0}}>
+                {pdfPreviewUrl ? (
+                  <iframe src={pdfPreviewUrl} className="w-full h-full border-0 rounded-[var(--radius-lg)]"
+                    title="Invoice PDF"/>
+                ) : (
+                  <div
+                    className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[var(--radius-lg)] border-2 border-dashed transition-all cursor-pointer"
+                    style={{borderColor:dragging?"#1B2A5E":"#CBD5E1",background:dragging?"#EEF1F8":"var(--surface-base)"}}
+                    onClick={()=>pdfInputRef.current?.click()}
+                    onDragOver={e=>{e.preventDefault();setDragging(true)}}
+                    onDragLeave={()=>setDragging(false)}
+                    onDrop={handleDrop}
+                  >
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{background:"#EEF1F8"}}>
+                      <FilePdf size={24} style={{color:"#1B2A5E"}}/>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-semibold" style={{color:"var(--text-primary)"}}>Drop PDF here or click to browse</p>
+                      <p className="text-[10px] mt-0.5" style={{color:"var(--text-muted)"}}>PDF only · max 20 MB</p>
+                    </div>
+                    <button type="button"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold"
+                      style={{background:"#1B2A5E",color:"#fff"}}>
+                      <UploadSimple size={12}/> Browse PDF
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 px-4 py-2 rounded-[var(--radius-md)] text-xs font-semibold transition-all hover:opacity-90"
-                    style={{background:"#1B2A5E",color:"#fff"}}>
-                    <UploadSimple size={14}/> Browse PDF
-                  </button>
+                )}
+              </div>
+
+              {/* AI Extract button */}
+              {pdfFile && (
+                <div className="px-3 pb-2 flex-shrink-0">
+                  {extractBusy ? (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-medium" style={{color:"#7C3AED"}}>{stepLabel[extractStep]}</span>
+                        <span className="text-[11px]" style={{color:"var(--text-disabled)"}}>{stepPct[extractStep]}%</span>
+                      </div>
+                      <div className="h-1.5 rounded-full overflow-hidden" style={{background:"#EDE9FE"}}>
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{width:`${stepPct[extractStep]}%`,background:"#7C3AED"}}/>
+                      </div>
+                    </div>
+                  ) : extractStep === "done" ? (
+                    <div className="flex items-center gap-2 py-1.5 px-2.5 rounded-[var(--radius-md)] text-xs font-semibold"
+                      style={{background:"#ECFDF5",color:"#059669",border:"1px solid #A7F3D0"}}>
+                      <Check size={12}/> AI extraction complete
+                      <button onClick={()=>setExtractStep("idle")}
+                        className="ml-auto text-[10px] underline opacity-60 hover:opacity-100">Re-extract</button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={handleExtract} disabled={extractBusy}
+                      className="w-full flex items-center justify-center gap-2 py-2 rounded-[var(--radius-md)] text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50"
+                      style={{background:"linear-gradient(135deg,#7C3AED,#6D28D9)",color:"#fff"}}>
+                      <Sparkle size={13} weight="fill"/> Extract with AI
+                    </button>
+                  )}
+                  {extractStep==="error"&&extractError&&(
+                    <div className="mt-1.5 flex items-start gap-1.5 p-2 rounded text-[11px]"
+                      style={{background:"#FFF0F0",color:"#DC2626"}}>
+                      <Warning size={11} className="flex-shrink-0 mt-0.5"/> {extractError}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* PDF actions */}
-            {pdfPreviewUrl && (
-              <div className="flex items-center gap-2 px-3 py-2 border-t flex-shrink-0"
-                style={{borderColor:"var(--surface-border)",background:"var(--surface-base)"}}>
-                <FilePdf size={14} style={{color:"#1B2A5E",flexShrink:0}}/>
-                <span className="text-xs truncate flex-1" style={{color:"var(--text-secondary)"}}>
-                  {pdfFile?.name ?? "Invoice PDF"}
-                </span>
-                <button onClick={()=>pdfInputRef.current?.click()}
-                  className="text-[11px] font-medium px-2 py-1 rounded transition-colors hover:bg-[#EEF1F8]"
-                  style={{color:"var(--text-muted)"}}>Change</button>
-                <button onClick={()=>{setPdfFile(null);setPdfPreviewUrl(null);setExtractStep("idle");setAiInvoices([])}}
-                  className="w-5 h-5 flex items-center justify-center rounded transition-colors hover:bg-[#FFF0F0]"
-                  style={{color:"#DC2626"}}>
-                  <X size={11}/>
-                </button>
+            {/* ── Bank Statement (bottom, mandatory) ───────────────────────── */}
+            <div className="flex flex-col flex-shrink-0" style={{height:"38%",minHeight:"160px"}}>
+              {/* Label */}
+              <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+                <Bank size={14} style={{color:"#059669"}}/>
+                <span className="text-xs font-bold" style={{color:"var(--text-primary)"}}>Bank Statement</span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{background:"#FFF0F0",color:"#DC2626"}}>Required</span>
+                {bankPreviewUrl && (
+                  <div className="ml-auto flex items-center gap-1">
+                    <a href={bankPreviewUrl} target="_blank" rel="noreferrer"
+                      className="text-[10px] font-medium px-2 py-0.5 rounded hover:bg-[#ECFDF5]"
+                      style={{color:"#059669"}}>Preview</a>
+                    <button onClick={()=>{setBankFile(null);setBankPreviewUrl(null)}}
+                      className="w-5 h-5 flex items-center justify-center rounded hover:bg-[#FFF0F0]"
+                      style={{color:"#DC2626"}}><X size={11}/></button>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* AI Extract button */}
-            {pdfFile && extractStep !== "done" && (
-              <div className="px-3 pb-3 flex-shrink-0">
-                {extractBusy ? (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium" style={{color:"#7C3AED"}}>
-                        {stepLabel[extractStep]}
-                      </span>
-                      <span className="text-xs" style={{color:"var(--text-disabled)"}}>
-                        {stepPct[extractStep]}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{background:"#EDE9FE"}}>
-                      <div className="h-full rounded-full transition-all duration-700"
-                        style={{width:`${stepPct[extractStep]}%`,background:"#7C3AED"}}/>
-                    </div>
+              {/* Preview or drop zone */}
+              <div className="flex-1 overflow-hidden mx-3 mb-3">
+                {bankPreviewUrl ? (
+                  <div className="h-full flex flex-col items-center justify-center gap-2 rounded-[var(--radius-lg)] border"
+                    style={{background:"var(--surface-base)",borderColor:"#A7F3D0"}}>
+                    <Bank size={20} style={{color:"#059669"}}/>
+                    <p className="text-xs font-medium truncate max-w-[90%]" style={{color:"var(--text-secondary)"}}>
+                      {bankFile?.name ?? "Bank Statement uploaded"}
+                    </p>
+                    <button onClick={()=>bankInputRef.current?.click()}
+                      className="text-[11px] font-medium px-2.5 py-1 rounded-[var(--radius-md)]"
+                      style={{background:"#ECFDF5",color:"#059669"}}>Change file</button>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={handleExtract}
-                    disabled={extractBusy}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-[var(--radius-md)] text-sm font-bold transition-all hover:opacity-90 disabled:opacity-50"
-                    style={{background:"linear-gradient(135deg,#7C3AED,#6D28D9)",color:"#fff"}}>
-                    <Sparkle size={15} weight="fill"/> Extract with AI
-                  </button>
-                )}
-                {extractStep==="error"&&extractError&&(
-                  <div className="mt-2 flex items-start gap-1.5 p-2 rounded text-xs"
-                    style={{background:"#FFF0F0",color:"#DC2626"}}>
-                    <Warning size={12} className="flex-shrink-0 mt-0.5"/>
-                    {extractError}
+                  <div
+                    className="h-full flex flex-col items-center justify-center gap-2 rounded-[var(--radius-lg)] border-2 border-dashed cursor-pointer transition-all hover:border-[#059669] hover:bg-[#ECFDF5]"
+                    style={{borderColor:"#CBD5E1",background:"var(--surface-base)"}}
+                    onClick={()=>bankInputRef.current?.click()}
+                  >
+                    <Bank size={20} style={{color:"#059669"}}/>
+                    <div className="text-center">
+                      <p className="text-xs font-semibold" style={{color:"var(--text-primary)"}}>Upload bank statement</p>
+                      <p className="text-[10px] mt-0.5" style={{color:"var(--text-muted)"}}>PDF, PNG, JPG accepted</p>
+                    </div>
+                    <button type="button"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] text-xs font-semibold"
+                      style={{background:"#059669",color:"#fff"}}>
+                      <UploadSimple size={12}/> Browse
+                    </button>
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Done badge */}
-            {extractStep==="done"&&(
-              <div className="px-3 pb-3 flex-shrink-0">
-                <div className="flex items-center gap-2 py-2 px-3 rounded-[var(--radius-md)] text-xs font-semibold"
-                  style={{background:"#ECFDF5",color:"#059669",border:"1px solid #A7F3D0"}}>
-                  <Check size={13}/> AI extraction complete
-                  <button onClick={()=>setExtractStep("idle")}
-                    className="ml-auto text-[10px] underline opacity-60 hover:opacity-100">Re-extract</button>
-                </div>
-              </div>
-            )}
-
-            {/* Bank statement */}
-            <div className="flex-shrink-0 border-t p-3" style={{borderColor:"var(--surface-border)"}}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{color:"var(--text-muted)"}}>
-                Bank Statement (optional)
-              </p>
-              {bankPreviewUrl ? (
-                <div className="flex items-center gap-2 p-2 rounded-[var(--radius-md)] border"
-                  style={{background:"var(--surface-base)",borderColor:"var(--surface-border)"}}>
-                  <Bank size={14} style={{color:"#059669",flexShrink:0}}/>
-                  <span className="text-xs truncate flex-1" style={{color:"var(--text-secondary)"}}>
-                    {bankFile?.name ?? "Bank Statement"}
-                  </span>
-                  <a href={bankPreviewUrl} target="_blank" rel="noreferrer"
-                    className="w-5 h-5 flex items-center justify-center" title="Preview">
-                    <Eye size={12} style={{color:"var(--text-muted)"}}/>
-                  </a>
-                  <button onClick={()=>{setBankFile(null);setBankPreviewUrl(null)}}
-                    className="w-5 h-5 flex items-center justify-center" style={{color:"#DC2626"}}>
-                    <X size={11}/>
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={()=>bankInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-[var(--radius-md)] border border-dashed text-xs font-medium transition-all hover:bg-[#ECFDF5]"
-                  style={{borderColor:"#A7F3D0",color:"#059669"}}>
-                  <Bank size={13}/> Upload Bank Statement
-                </button>
-              )}
             </div>
 
             {/* Hidden file inputs */}
@@ -693,7 +626,7 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
                     <label className="text-xs font-semibold uppercase tracking-wider" style={{color:"var(--text-muted)"}}>Amount</label>
                     <input type="number" step="0.001" min="0"
                       value={form.amount}
-                      onChange={e=>handleAmountChange(activeFormIdx,e.target.value)}
+                      onChange={e=>setForm(activeFormIdx,{amount:e.target.value})}
                       placeholder="0.000"
                       className="h-10 px-3 text-sm rounded-[var(--radius-md)] border"
                       style={{background:"var(--surface-base)",borderColor:"var(--surface-border)",color:"var(--text-primary)",outline:"none"}}/>
@@ -718,54 +651,6 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
                     💱 ≈ OMR {omrEq}
                     <span className="font-normal opacity-70">
                       (rate: {form.exchange_rate||CURRENCY_RATES[form.currency]||"?"} per {form.currency})
-                    </span>
-                  </div>
-                )}
-
-                {/* Category */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider" style={{color:"var(--text-muted)"}}>Expense Category</label>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {CATEGORIES.map(cat=>{
-                      const c=CATEGORY_COLOR[cat.key]
-                      return(
-                        <button key={cat.key} type="button"
-                          onClick={()=>handleCategoryChange(activeFormIdx,cat.key)}
-                          className="flex flex-col items-center gap-1 px-1 py-2 rounded-[var(--radius-md)] text-[10px] font-semibold border transition-all"
-                          style={{
-                            background:  form.expense_category===cat.key?c.bg:"var(--surface-base)",
-                            borderColor: form.expense_category===cat.key?c.color:"var(--surface-border)",
-                            color:       form.expense_category===cat.key?c.color:"var(--text-muted)",
-                          }}>
-                          <span className="text-base leading-none">{cat.icon}</span>
-                          {cat.label}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Breakdown preview */}
-                {form.amount&&parseFloat(form.amount)>0&&(
-                  <div className="flex flex-wrap gap-2 p-3 rounded-[var(--radius-lg)]"
-                    style={{background:"var(--surface-subtle)",border:"1px solid var(--surface-border)"}}>
-                    <p className="text-xs font-semibold w-full mb-1" style={{color:"var(--text-muted)"}}>
-                      Expense Breakdown
-                    </p>
-                    {CATEGORIES.map(cat=>{
-                      const v=parseFloat((form as unknown as Record<string,string>)[`${cat.key}_amount`]||"0")
-                      if(!v) return null
-                      return(
-                        <span key={cat.key} className="text-xs px-2 py-1 rounded-full font-medium"
-                          style={{background:CATEGORY_COLOR[cat.key].bg,color:CATEGORY_COLOR[cat.key].color}}>
-                          {cat.icon} {cat.label}: {form.currency} {v.toFixed(3)}
-                        </span>
-                      )
-                    })}
-                    <span className="text-xs px-2 py-1 rounded-full font-bold ml-auto"
-                      style={{background:"#1B2A5E",color:"#fff"}}>
-                      Total: {form.currency} {parseFloat(form.amount||"0").toFixed(3)}
-                      {omrEq&&form.currency!=="OMR"&&` (OMR ${omrEq})`}
                     </span>
                   </div>
                 )}
@@ -831,7 +716,6 @@ export default function MyInvoicesPage() {
   const [search,      setSearch]      = React.useState("")
   const [filterTab,   setFilterTab]   = React.useState<FilterTab>("all")
   const [filterMonth, setFilterMonth] = React.useState("")
-  const [filterCat,   setFilterCat]   = React.useState("")
   const [sortDesc,    setSortDesc]    = React.useState(true)
   const [modal,       setModal]       = React.useState(false)
   const [editing,     setEditing]     = React.useState<Invoice|null>(null)
@@ -871,7 +755,6 @@ export default function MyInvoicesPage() {
     myInvoices
       .filter(i=>filterTab==="all"||i.status===filterTab)
       .filter(i=>!filterMonth||(i.transaction_date??i.created_at??"").startsWith(filterMonth))
-      .filter(i=>!filterCat||i.expense_category===filterCat)
       .filter(i=>{
         if(!search) return true
         const q=search.toLowerCase()
@@ -887,7 +770,7 @@ export default function MyInvoicesPage() {
         const db=new Date(b.created_at??0).getTime()
         return sortDesc?db-da:da-db
       })
-  ,[myInvoices,filterTab,filterMonth,filterCat,search,sortDesc])
+  ,[myInvoices,filterTab,filterMonth,search,sortDesc])
 
   async function handleDelete(){
     if(!deleting) return
@@ -975,12 +858,6 @@ export default function MyInvoicesPage() {
           <option value="">All months</option>
           {months.map(m=><option key={m} value={m}>{m}</option>)}
         </select>
-        <select value={filterCat} onChange={e=>setFilterCat(e.target.value)}
-          className="h-8 px-2 text-xs rounded-[var(--radius-md)] border"
-          style={{background:"var(--surface-base)",borderColor:"var(--surface-border)",color:"var(--text-secondary)",outline:"none"}}>
-          <option value="">All categories</option>
-          {CATEGORIES.map(c=><option key={c.key} value={c.key}>{c.icon} {c.label}</option>)}
-        </select>
         <div className="relative flex-1 min-w-[180px]">
           <MagnifyingGlass size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{color:"var(--text-muted)"}}/>
           <input type="text" value={search} onChange={e=>setSearch(e.target.value)}
@@ -1005,11 +882,11 @@ export default function MyInvoicesPage() {
           style={{borderColor:"var(--surface-border)"}}>
           <Receipt size={32} style={{color:"var(--text-disabled)"}}/>
           <p className="text-sm font-medium" style={{color:"var(--text-muted)"}}>
-            {search||filterTab!=="all"||filterMonth||filterCat
+            {search||filterTab!=="all"||filterMonth
               ?"No invoices match your filters"
               :"No invoices yet — upload your first receipt"}
           </p>
-          {!search&&filterTab==="all"&&!filterMonth&&!filterCat&&(
+          {!search&&filterTab==="all"&&!filterMonth&&(
             <Button variant="primary" size="sm" onClick={()=>{setEditing(null);setModal(true)}}>
               <Plus size={13}/> New Invoice
             </Button>
@@ -1018,7 +895,6 @@ export default function MyInvoicesPage() {
       ):(
         <div className="flex flex-col gap-2">
           {filtered.map(inv=>{
-            const cat   =CATEGORY_COLOR[inv.expense_category??"others"]??CATEGORY_COLOR.others
             const isPaid=inv.status==="paid"
             const omrAmt=inv.currency&&inv.currency!=="OMR"&&inv.amount
               ?`≈ OMR ${toOMR(inv.amount,inv.currency)}`
@@ -1029,9 +905,9 @@ export default function MyInvoicesPage() {
               <div key={inv.id}
                 className="group flex items-center gap-4 px-4 py-3 rounded-[var(--radius-lg)] border transition-all hover:shadow-sm"
                 style={{background:"var(--surface-base)",borderColor:"var(--surface-border)",borderLeft:`3px solid ${isPaid?"#059669":"#DC2626"}`}}>
-                <div className="w-9 h-9 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0 text-base"
-                  style={{background:cat.bg}}>
-                  {CATEGORIES.find(c=>c.key===inv.expense_category)?.icon??"📋"}
+                <div className="w-9 h-9 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0"
+                  style={{background:"#EEF1F8"}}>
+                  <Receipt size={18} style={{color:"#1B2A5E"}}/>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
