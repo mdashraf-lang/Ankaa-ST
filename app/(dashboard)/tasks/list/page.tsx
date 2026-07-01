@@ -507,7 +507,7 @@ export default function BoardPage() {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
-          <PageHeader title="Boards" subtitle="Create and manage your task boards" />
+          <PageHeader title="Boards" subtitle="Your workspace — create boards for any project or task" />
           <Button variant="primary" size="sm" onClick={() => { setNewProjName(""); setNewProjDesc(""); setNewProjSearch(""); setNewProjMembers([]); setNewProjModal(true) }}>
             <Plus size={14} /> New Board
           </Button>
@@ -517,8 +517,9 @@ export default function BoardPage() {
           <div className="flex flex-col items-center gap-3 py-20 rounded-[var(--radius-xl)] border border-dashed"
             style={{ borderColor: "var(--surface-border)" }}>
             <SquaresFour size={32} style={{ color: "var(--text-disabled)" }} />
-            <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>No boards yet</p>
-            <Button variant="primary" size="sm" onClick={() => setNewProjModal(true)}>
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>No boards yet</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Create a board for your tasks, a project, or your team</p>
+            <Button variant="primary" size="sm" onClick={() => { setNewProjName(""); setNewProjDesc(""); setNewProjSearch(""); setNewProjMembers([]); setNewProjModal(true) }}>
               <Plus size={13} /> Create your first board
             </Button>
           </div>
