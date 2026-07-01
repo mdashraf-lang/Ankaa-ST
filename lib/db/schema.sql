@@ -1113,6 +1113,11 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id TEXT;
 -- ── project_members created_at (missed in original schema) ──────────────────
 ALTER TABLE project_members ADD COLUMN IF NOT EXISTS created_at TEXT;
 
+-- ── Invoice file paths + exchange rate ───────────────────────────────────────
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS invoice_receipt_path TEXT;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS bank_screenshot_path TEXT;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS exchange_rate        REAL;
+
 -- ── Drop broken DEFAULT '' from primary key columns ───────────────────────────
 -- Explicit id (randomUUID) is required on every INSERT. Never rely on DEFAULT.
 ALTER TABLE projects           ALTER COLUMN id DROP DEFAULT;
