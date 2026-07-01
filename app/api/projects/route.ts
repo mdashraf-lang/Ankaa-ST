@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const userId = req.headers.get('x-user-id')!
   const body = await req.json()
-  const { name, description, section, memberIds } = body
+  const { name, description, section, status, priority, start_date, end_date, memberIds } = body
 
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
@@ -60,8 +60,12 @@ export async function POST(req: NextRequest) {
     .from('projects')
     .insert({
       id: randomUUID(), name, description: description || null,
-      created_by: userId, created_at: now,
+      created_by: userId, created_at: now, updated_at: now,
       section: section || 'current',
+      status: status || 'in_progress',
+      priority: priority || 'medium',
+      start_date: start_date || null,
+      end_date: end_date || null,
     })
     .select()
     .single()

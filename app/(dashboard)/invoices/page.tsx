@@ -145,14 +145,14 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
         transaction_date: editing.transaction_date ?? "",
         currency:         editing.currency ?? "OMR",
         amount:           String(editing.amount ?? ""),
-        exchange_rate:    String((editing as Record<string,unknown>).exchange_rate ?? ""),
+        exchange_rate:    String(editing.exchange_rate ?? ""),
         cost_center:      editing.cost_center ?? "",
         description:      editing.description ?? "",
       }])
       // Load existing PDF preview if stored path exists
-      const rcpt = (editing as Record<string,unknown>).invoice_receipt_path as string|null
+      const rcpt = editing.invoice_receipt_path as string|null
       if (rcpt) setPdfPreviewUrl(rcpt)
-      const bank = (editing as Record<string,unknown>).bank_screenshot_path as string|null
+      const bank = editing.bank_screenshot_path as string|null
       if (bank) setBankPreviewUrl(bank)
     } else {
       setForms([BLANK_FORM])
@@ -255,8 +255,8 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
 
     if (toSave.length === 0) { toast.error("Select at least one invoice"); return }
     if (!toSave[0].name.trim()) { setFormError("Invoice name is required"); return }
-    const hasReceipt = !!pdfFile || !!(editing && (editing as Record<string,unknown>).invoice_receipt_path)
-    const hasBank    = !!bankFile || !!(editing && (editing as Record<string,unknown>).bank_screenshot_path)
+    const hasReceipt = !!pdfFile || !!(editing && editing.invoice_receipt_path)
+    const hasBank    = !!bankFile || !!(editing && editing.bank_screenshot_path)
     if (!hasReceipt) { setFormError("Invoice Receipt PDF is required"); return }
     if (!hasBank)    { setFormError("Bank Statement is required"); return }
     setFormError(null); setSubmitting(true)
@@ -268,14 +268,14 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
       if (pdfFile) {
         const r = await uploadFile(pdfFile,"receipt")
         receiptPath = r.path ?? null
-      } else if (editing && (editing as Record<string,unknown>).invoice_receipt_path) {
-        receiptPath = (editing as Record<string,unknown>).invoice_receipt_path as string
+      } else if (editing && editing.invoice_receipt_path) {
+        receiptPath = editing.invoice_receipt_path as string
       }
       if (bankFile) {
         const r = await uploadFile(bankFile,"bank")
         bankPath = r.path ?? null
-      } else if (editing && (editing as Record<string,unknown>).bank_screenshot_path) {
-        bankPath = (editing as Record<string,unknown>).bank_screenshot_path as string
+      } else if (editing && editing.bank_screenshot_path) {
+        bankPath = editing.bank_screenshot_path as string
       }
 
       const saved: Invoice[] = []
@@ -901,7 +901,7 @@ export default function MyInvoicesPage() {
             const omrAmt=inv.currency&&inv.currency!=="OMR"&&inv.amount
               ?`≈ OMR ${toOMR(inv.amount,inv.currency)}`
               :null
-            const hasFile=(inv as Record<string,unknown>).invoice_receipt_path
+            const hasFile=inv.invoice_receipt_path
 
             return(
               <div key={inv.id}
@@ -943,7 +943,7 @@ export default function MyInvoicesPage() {
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   {hasFile&&(
                     <button
-                      onClick={()=>setPreviewUrl((inv as Record<string,unknown>).invoice_receipt_path as string)}
+                      onClick={()=>setPreviewUrl(inv.invoice_receipt_path as string)}
                       className="w-7 h-7 flex items-center justify-center rounded-[var(--radius-md)] transition-colors hover:bg-[#F5F3FF]"
                       style={{color:"#7C3AED"}} title="View PDF">
                       <Eye size={13}/>

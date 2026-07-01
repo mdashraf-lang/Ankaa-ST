@@ -128,11 +128,13 @@ export interface ERPProject {
   description: string | null
   section: "current" | "expected" | "research" | "closing"
   status: "pending" | "in_progress" | "completed"
+  priority: "low" | "medium" | "high" | "critical"
   start_date: string
   end_date: string | null
   progress: number
   department_id: string | null
   created_at: string
+  updated_at?: string
 }
 
 export interface ProjectTask {
@@ -217,6 +219,67 @@ export interface TenderSubmission {
   submitted_by: string
   submitted_at: string
   file_url: string | null
+}
+
+// ─── Purchasing Committee ─────────────────────────────────────────────────────
+
+export type PCStatus =
+  | "pending_review" | "under_review" | "review_completed"
+  | "pending_final"  | "approved"     | "rejected"
+
+export type PCReviewerRole =
+  | "tender_icv_manager" | "cto" | "hr" | "finance" | "coo"
+
+export type PCDecision = "pending" | "approved" | "rejected"
+
+export interface PCEntry {
+  id: string
+  name: string
+  tender_number: string
+  price: number
+  currency: string
+  submission_end_date: string
+  description: string
+  document_url: string | null
+  status: PCStatus
+  created_by: string | null
+  created_at: string
+  updated_at: string | null
+}
+
+export interface PCReviewer {
+  id: string
+  entry_id: string
+  role: PCReviewerRole
+  user_id: string
+  assigned_at: string | null
+  profiles?: { id: string; full_name: string | null; email: string; avatar_url: string | null }
+}
+
+export interface PCReview {
+  id: string
+  entry_id: string
+  reviewer_id: string
+  status: PCDecision
+  comment: string | null
+  reviewed_at: string | null
+  created_at: string
+}
+
+export interface PCFinalReview {
+  id: string
+  entry_id: string
+  ceo_user_id: string | null
+  md_user_id:  string | null
+  ceo_status:  PCDecision
+  ceo_comment: string | null
+  ceo_reviewed_at: string | null
+  md_status:   PCDecision
+  md_comment:  string | null
+  md_reviewed_at: string | null
+  created_at:  string
+  ceo_profile?: { id: string; full_name: string | null; email: string }
+  md_profile?:  { id: string; full_name: string | null; email: string }
 }
 
 export interface AssetCompany {
@@ -547,6 +610,9 @@ export interface Invoice {
   transportation_amount: number | null
   food_amount: number | null
   others_amount: number | null
+  exchange_rate: number | null
+  invoice_receipt_path: string | null
+  bank_screenshot_path: string | null
   created_at: string
   updated_at?: string | null
 }

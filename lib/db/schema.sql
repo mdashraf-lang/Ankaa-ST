@@ -1204,3 +1204,146 @@ CREATE TABLE IF NOT EXISTS device_import_log (
   date_to       TEXT,
   created_at    TEXT
 );
+
+-- ─── Project Management Extensions ────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS project_risks (
+  id           TEXT PRIMARY KEY,
+  project_id   TEXT REFERENCES projects(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  description  TEXT,
+  level        TEXT DEFAULT 'medium',    -- low | medium | high | critical
+  status       TEXT DEFAULT 'open',      -- open | mitigated | closed
+  owner        TEXT,
+  mitigation   TEXT,
+  created_by   TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at   TEXT,
+  updated_at   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS project_change_requests (
+  id           TEXT PRIMARY KEY,
+  project_id   TEXT REFERENCES projects(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  description  TEXT,
+  requester    TEXT NOT NULL,
+  status       TEXT DEFAULT 'pending',   -- pending | approved | rejected
+  impact       TEXT DEFAULT 'medium',    -- low | medium | high
+  created_by   TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at   TEXT,
+  updated_at   TEXT
+);
+
+CREATE TABLE IF NOT EXISTS project_action_items (
+  id           TEXT PRIMARY KEY,
+  project_id   TEXT REFERENCES projects(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  description  TEXT,
+  assignee_id  TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  due_date     TEXT,
+  status       TEXT DEFAULT 'open',      -- open | in_progress | completed
+  created_by   TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at   TEXT,
+  updated_at   TEXT
+);
+
+-- ─── Tenders ──────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS tenders (
+  id                   TEXT PRIMARY KEY,
+  reference_number     TEXT UNIQUE,
+  title                TEXT NOT NULL,
+  client_name          TEXT NOT NULL,
+  client_contact       TEXT,
+  tender_value         REAL,
+  currency             TEXT DEFAULT 'OMR',
+  submission_deadline  TEXT NOT NULL,
+  status               TEXT DEFAULT 'open',
+    -- open | in_progress | submitted | under_review | awarded | rejected | cancelled
+  priority             TEXT DEFAULT 'medium',  -- low | medium | high | critical
+  description          TEXT,
+  source               TEXT,                   -- where the tender came from
+  project_id           TEXT REFERENCES projects(id) ON DELETE SET NULL,
+  created_by           TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at           TEXT,
+  updated_at           TEXT
+);
+
+CREATE TABLE IF NOT EXISTS tender_assignments (
+  id          TEXT PRIMARY KEY,
+  tender_id   TEXT REFERENCES tenders(id) ON DELETE CASCADE,
+  user_id     TEXT REFERENCES profiles(id) ON DELETE CASCADE,
+  progress    INTEGER DEFAULT 0,
+  status      TEXT DEFAULT 'assigned',    -- assigned | in_progress | completed
+  due_date    TEXT,
+  notes       TEXT,
+  assigned_at TEXT,
+  UNIQUE (tender_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS tender_submissions (
+  id           TEXT PRIMARY KEY,
+  tender_id    TEXT REFERENCES tenders(id) ON DELETE CASCADE,
+  version      TEXT DEFAULT '1.0',
+  type         TEXT DEFAULT 'technical',  -- technical | financial | combined
+  submitted_by TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  submitted_at TEXT,
+  notes        TEXT,
+  file_url     TEXT
+);
+
+-- ─── Purchasing Committee ──────────────────────────────────────────────────────
+-- Mirrors the Django TenderCommitteeEntry / TenderCommitteeReviewer /
+-- TenderCommitteeReview / TenderCommitteeFinalReview models.
+
+CREATE TABLE IF NOT EXISTS purchasing_committee_entries (
+  id                   TEXT PRIMARY KEY,
+  name                 TEXT NOT NULL,
+  tender_number        TEXT UNIQUE NOT NULL,
+  price                REAL NOT NULL,
+  currency             TEXT DEFAULT 'OMR',       -- OMR | USD | EUR
+  submission_end_date  TEXT NOT NULL,
+  description          TEXT NOT NULL,
+  document_url         TEXT,
+  status               TEXT DEFAULT 'pending_review',
+    -- pending_review | under_review | review_completed | pending_final | approved | rejected
+  created_by           TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  created_at           TEXT,
+  updated_at           TEXT
+);
+
+CREATE TABLE IF NOT EXISTS purchasing_committee_reviewers (
+  id           TEXT PRIMARY KEY,
+  entry_id     TEXT NOT NULL REFERENCES purchasing_committee_entries(id) ON DELETE CASCADE,
+  role         TEXT NOT NULL,   -- tender_icv_manager | cto | hr | finance | coo
+  user_id      TEXT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  assigned_at  TEXT,
+  UNIQUE (entry_id, role)       -- one person per role per entry
+);
+
+CREATE TABLE IF NOT EXISTS purchasing_committee_reviews (
+  id           TEXT PRIMARY KEY,
+  entry_id     TEXT NOT NULL REFERENCES purchasing_committee_entries(id) ON DELETE CASCADE,
+  reviewer_id  TEXT NOT NULL REFERENCES purchasing_committee_reviewers(id) ON DELETE CASCADE,
+  status       TEXT DEFAULT 'pending',  -- pending | approved | rejected
+  comment      TEXT,
+  reviewed_at  TEXT,
+  created_at   TEXT,
+  updated_at   TEXT,
+  UNIQUE (entry_id, reviewer_id)
+);
+
+CREATE TABLE IF NOT EXISTS purchasing_committee_final_reviews (
+  id               TEXT PRIMARY KEY,
+  entry_id         TEXT UNIQUE NOT NULL REFERENCES purchasing_committee_entries(id) ON DELETE CASCADE,
+  ceo_user_id      TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  md_user_id       TEXT REFERENCES profiles(id) ON DELETE SET NULL,
+  ceo_status       TEXT DEFAULT 'pending',   -- pending | approved | rejected
+  ceo_comment      TEXT,
+  ceo_reviewed_at  TEXT,
+  md_status        TEXT DEFAULT 'pending',   -- pending | approved | rejected
+  md_comment       TEXT,
+  md_reviewed_at   TEXT,
+  created_at       TEXT,
+  updated_at       TEXT
+);

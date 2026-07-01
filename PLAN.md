@@ -266,3 +266,62 @@ Khalid Al Masoudi (MD)
   ├──────────────────────────┼──────────────────┤
   │ All other staff          │ Ankaa@2026       │
   └──────────────────────────┴──────────────────┘
+  ✅ Done (ported to ERP /projects):
+
+  ┌────────────────────────────────────────────────────────────────────────┬────────┐
+  │                                Feature                                 │ Status │
+  ├────────────────────────────────────────────────────────────────────────┼────────┤
+  │ Project list — kanban + list view                                      │ Done   │
+  ├────────────────────────────────────────────────────────────────────────┼────────┤
+  │ New/Edit/Delete project modal                                          │ Done   │
+  ├────────────────────────────────────────────────────────────────────────┼────────┤
+  │ Project detail — Overview, Risks, Change Requests, Action Items, Team  │ Done   │
+  ├────────────────────────────────────────────────────────────────────────┼────────┤
+  │ Tenders list + "New Tender" modal                                      │ Done   │
+  ├────────────────────────────────────────────────────────────────────────┼────────┤
+  │ DB tables: project_risks, project_change_requests,                     │ Done   │
+  │ project_action_items, tenders                                          │        │
+  └────────────────────────────────────────────────────────────────────────┴────────┘
+
+  ---
+  ❌ Not done yet (still in Django only):
+
+  ┌────────────────────────────────┬───────────────────────────────────────────────┐
+  │            Feature             │                Django Model(s)                │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Timeline / Gantt chart         │ TimelineTask                                  │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Milestones (phases, phase      │ Milestone, MilestonePhaseGroup,               │
+  │ groups, milestone tasks)       │ MilestonePhase, MilestoneTask                 │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │                                │ TenderCommitteeEntry,                         │
+  │ Purchasing Committee workflow  │ TenderCommitteeReviewer,                      │
+  │ (reviewers, final review)      │ TenderCommitteeReview,                        │
+  │                                │ TenderCommitteeFinalReview                    │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Tender detail page (sections,  │ TenderSection, TenderDocument,                │
+  │ assignments, documents,        │ TenderProposal, TenderComment                 │
+  │ proposals, comments)           │                                               │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Tender Invoices                │ TenderInvoice                                 │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Baseline tracking              │ Baseline                                      │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Workboard cards (kanban within │ WorkboardCard                                 │
+  │  a project)                    │                                               │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Budget / Cost-benefit analysis │ ProjectBudgetTask, CostBenefitAnalysis        │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Issue tracking                 │ IssueCategory, Issue, IssueComment            │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ NDA document management        │ NDADocument, NDAField, NDAInstance,           │
+  │                                │ NDAFieldValue                                 │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ Subcontractors                 │ Subcontractor                                 │
+  ├────────────────────────────────┼───────────────────────────────────────────────┤
+  │ PDF export for projects        │ ExportProjectPDFView                          │
+  └────────────────────────────────┴───────────────────────────────────────────────┘
+
+  ---
+  What should I prioritize next? The Purchasing Committee workflow, the Tender detail
+  page, or Milestones?

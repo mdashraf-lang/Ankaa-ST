@@ -9,7 +9,7 @@ import {
   ListChecks, Package, Car, User, Airplane, CurrencyDollar, Buildings,
   Gear, UsersThree, Sliders, CaretDown, CaretRight, SignOut,
   ArrowLeft, ArrowRight, ClockCountdown, BookOpen, FolderOpen,
-  Wrench, MapPin, Wind, Storefront, Receipt,
+  Wrench, MapPin, Wind, Storefront, Receipt, Gavel,
 } from "@phosphor-icons/react"
 import { cn } from "@/lib/utils"
 import { Avatar } from "@/components/ui/avatar"
@@ -76,8 +76,9 @@ const NAV: NavItem[] = [
     icon:  Briefcase,
     allowedRoles: STAFF,
     children: [
-      { label: "All Projects", href: "/projects",         icon: FolderOpen                          },
-      { label: "Tenders",      href: "/projects/tenders", icon: FileText,  allowedRoles: EXECUTIVES },
+      { label: "All Projects",          href: "/projects",                              icon: FolderOpen                          },
+      { label: "Tenders",               href: "/projects/tenders",                     icon: FileText,  allowedRoles: EXECUTIVES },
+      { label: "Purchasing Committee",  href: "/projects/purchasing-committee",        icon: Gavel,     allowedRoles: [...EXECUTIVES, "finance", "hr", "tender_icv_manager"] },
     ],
   },
 
