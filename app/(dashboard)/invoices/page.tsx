@@ -168,15 +168,15 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
     }
   }, [pdfPreviewUrl, bankPreviewUrl])
 
-  // ── PDF selection ──────────────────────────────────────────────────────────
+  // ── PDF selection — auto-triggers AI extraction ────────────────────────────
   function handlePdfSelect(file: File) {
     if (!file.type.includes("pdf")) { toast.error("Please upload a PDF file"); return }
     if (file.size > 20 * 1024 * 1024) { toast.error("PDF must be under 20 MB"); return }
     setPdfFile(file)
     if (pdfPreviewUrl?.startsWith("blob:")) URL.revokeObjectURL(pdfPreviewUrl)
     setPdfPreviewUrl(URL.createObjectURL(file))
-    setExtractStep("idle"); setExtractError(null)
     setAiInvoices([]); setSelectedIdxs(new Set()); setExpandedIdx(0)
+    handleExtract(file) // start immediately — don't wait for state update
   }
 
   function handleBankSelect(file: File) {
@@ -191,9 +191,10 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
     if (file) handlePdfSelect(file)
   }
 
-  // ── AI extraction ──────────────────────────────────────────────────────────
-  async function handleExtract() {
-    if (!pdfFile) return
+  // ── AI extraction (accepts file directly so it can be called before state settles) ──
+  async function handleExtract(file?: File) {
+    const target = file ?? pdfFile
+    if (!target) return
     setExtractError(null)
 
     const steps: ExtractStep[] = ["reading","analysing","filling"]
@@ -203,7 +204,7 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
     }
 
     const fd = new FormData()
-    fd.append("pdf", pdfFile)
+    fd.append("pdf", target)
 
     try {
       const res  = await fetch("/api/invoices/extract", { method:"POST", body:fd })
@@ -222,7 +223,7 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
       setExtractStep("done")
       toast.success(invoices.length > 1
         ? `Found ${invoices.length} invoices — review and save`
-        : "Fields filled — review and save")
+        : "Fields filled ✓")
     } catch {
       setExtractStep("error")
       setExtractError("Network error — check your connection")
@@ -421,13 +422,14 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
                 )}
               </div>
 
-              {/* AI Extract button */}
+              {/* AI status — shows automatically after upload */}
               {pdfFile && (
                 <div className="px-3 pb-2 flex-shrink-0">
                   {extractBusy ? (
                     <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-medium" style={{color:"#7C3AED"}}>{stepLabel[extractStep]}</span>
+                      <div className="flex items-center gap-2">
+                        <Sparkle size={12} weight="fill" style={{color:"#7C3AED",flexShrink:0}}/>
+                        <span className="text-[11px] font-medium flex-1" style={{color:"#7C3AED"}}>{stepLabel[extractStep]}</span>
                         <span className="text-[11px]" style={{color:"var(--text-disabled)"}}>{stepPct[extractStep]}%</span>
                       </div>
                       <div className="h-1.5 rounded-full overflow-hidden" style={{background:"#EDE9FE"}}>
@@ -439,22 +441,22 @@ function InvoiceUploadModal({open,editing,costCenters,onClose,onSaved}:InvoiceUp
                     <div className="flex items-center gap-2 py-1.5 px-2.5 rounded-[var(--radius-md)] text-xs font-semibold"
                       style={{background:"#ECFDF5",color:"#059669",border:"1px solid #A7F3D0"}}>
                       <Check size={12}/> AI extraction complete
-                      <button onClick={()=>setExtractStep("idle")}
-                        className="ml-auto text-[10px] underline opacity-60 hover:opacity-100">Re-extract</button>
+                      <button onClick={()=>handleExtract()}
+                        className="ml-auto text-[10px] underline opacity-60 hover:opacity-100">Re-run</button>
                     </div>
-                  ) : (
-                    <button type="button" onClick={handleExtract} disabled={extractBusy}
-                      className="w-full flex items-center justify-center gap-2 py-2 rounded-[var(--radius-md)] text-xs font-bold transition-all hover:opacity-90 disabled:opacity-50"
-                      style={{background:"linear-gradient(135deg,#7C3AED,#6D28D9)",color:"#fff"}}>
-                      <Sparkle size={13} weight="fill"/> Extract with AI
-                    </button>
-                  )}
-                  {extractStep==="error"&&extractError&&(
-                    <div className="mt-1.5 flex items-start gap-1.5 p-2 rounded text-[11px]"
-                      style={{background:"#FFF0F0",color:"#DC2626"}}>
-                      <Warning size={11} className="flex-shrink-0 mt-0.5"/> {extractError}
+                  ) : extractStep === "error" ? (
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-start gap-1.5 p-2 rounded text-[11px]"
+                        style={{background:"#FFF0F0",color:"#DC2626"}}>
+                        <Warning size={11} className="flex-shrink-0 mt-0.5"/> {extractError}
+                      </div>
+                      <button onClick={()=>handleExtract()}
+                        className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[var(--radius-md)] text-[11px] font-semibold border transition-all hover:bg-[#FFF0F0]"
+                        style={{borderColor:"#FECACA",color:"#DC2626"}}>
+                        Retry AI Extraction
+                      </button>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
