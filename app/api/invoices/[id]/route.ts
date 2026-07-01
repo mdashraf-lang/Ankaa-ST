@@ -42,6 +42,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const allowed = [
     'name','amount','transaction_date','expense_category','cost_center',
     'description','currency','bill_number','paid_by','status',
+    'exchange_rate','invoice_receipt_path','bank_screenshot_path',
     'extracted_date','extracted_amount',
     'fuel_amount','materials_amount','transportation_amount','food_amount','others_amount',
   ]
