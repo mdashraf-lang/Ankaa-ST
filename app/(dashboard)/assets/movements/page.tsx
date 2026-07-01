@@ -209,7 +209,6 @@ export default function AssetMovementsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Asset Movements"
-        subtitle="Full audit trail of asset transfers between locations and companies"
         actions={
           <Button variant="primary" size="md" onClick={openAdd}>
             <Plus size={16} />

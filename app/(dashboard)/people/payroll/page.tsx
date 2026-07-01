@@ -82,7 +82,6 @@ export default function PayrollPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Payroll"
-        subtitle={`Salary details for ${getMonthName(viewMonth)} ${viewYear}`}
         actions={
           <Button variant="secondary" size="md" onClick={exportCSV} disabled={loading || records.length === 0}>
             <DownloadSimple size={16} />

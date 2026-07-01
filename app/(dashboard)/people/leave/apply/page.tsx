@@ -37,7 +37,6 @@ export default function ApplyLeavePage() {
     <div className="flex flex-col gap-6 max-w-2xl">
       <PageHeader
         title="Apply for Leave"
-        subtitle="Submit a new leave request for approval"
         breadcrumb={
           <Link
             href="/people/leave"

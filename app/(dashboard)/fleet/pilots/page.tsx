@@ -157,7 +157,6 @@ export default function PilotsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Pilots"
-        subtitle="Manage drone pilots and their certifications"
         actions={<Button variant="primary" size="md" onClick={openAdd}><Plus size={16} />Add Pilot</Button>}
       />
 

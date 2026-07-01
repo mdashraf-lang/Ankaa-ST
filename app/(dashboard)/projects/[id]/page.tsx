@@ -93,7 +93,6 @@ export default function ProjectDetailPage({
     <div className="flex flex-col gap-6">
       <PageHeader
         title={project?.name ?? "Project Details"}
-        subtitle={project?.description ?? undefined}
         breadcrumb={
           <Link
             href="/projects"

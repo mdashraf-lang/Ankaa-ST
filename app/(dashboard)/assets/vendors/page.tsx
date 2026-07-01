@@ -195,7 +195,6 @@ export default function AssetVendorsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Asset Vendors"
-        subtitle="Manage suppliers and vendors for asset procurement"
         actions={
           <Button variant="primary" size="md" onClick={openAdd}>
             <Plus size={16} />

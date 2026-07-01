@@ -101,7 +101,6 @@ export default function AssetDetailPage({
     <div className="flex flex-col gap-6 max-w-5xl">
       <PageHeader
         title={asset?.name ?? "Asset Details"}
-        subtitle={asset?.asset_id ?? id}
         breadcrumb={
           <Link
             href="/assets"

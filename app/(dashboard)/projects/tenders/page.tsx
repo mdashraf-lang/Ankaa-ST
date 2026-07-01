@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { Plus, FileText } from "@phosphor-icons/react"
@@ -133,7 +133,6 @@ export default function TendersPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Tenders"
-        subtitle="Track and manage tender submissions and pipelines"
         actions={
           <Button variant="primary" size="md">
             <Plus size={16} />
@@ -147,7 +146,6 @@ export default function TendersPage() {
         <StatCard
           title="Total Tenders"
           value={stats.total}
-          subtitle="All time"
           icon={<Files size={18} />}
           color="#1B2A5E"
           iconBg="#EEF1F8"
@@ -155,7 +153,6 @@ export default function TendersPage() {
         <StatCard
           title="Open"
           value={stats.open}
-          subtitle="Active tenders"
           icon={<FolderOpen size={18} />}
           color="#2563EB"
           iconBg="#EFF4FF"
@@ -163,7 +160,6 @@ export default function TendersPage() {
         <StatCard
           title="In Progress"
           value={stats.inProgress}
-          subtitle="Being prepared"
           icon={<HourglassHigh size={18} />}
           color="#E89B1A"
           iconBg="#FFF8E6"
@@ -171,7 +167,6 @@ export default function TendersPage() {
         <StatCard
           title="Awarded"
           value={stats.awarded}
-          subtitle="Won tenders"
           icon={<Trophy size={18} />}
           color="#10A854"
           iconBg="#EDFBF3"

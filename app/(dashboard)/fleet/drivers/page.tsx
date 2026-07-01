@@ -154,7 +154,6 @@ export default function DriversPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Drivers"
-        subtitle="Manage fleet drivers and their assignments"
         actions={<Button variant="primary" size="md" onClick={openAdd}><Plus size={16} />Add Driver</Button>}
       />
 

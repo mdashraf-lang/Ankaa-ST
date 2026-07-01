@@ -134,7 +134,6 @@ export default function LeaveApprovalsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Leave Approvals"
-        subtitle="Review and approve pending leave requests from your team"
       />
 
       {/* Alert banner */}

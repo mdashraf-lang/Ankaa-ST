@@ -126,7 +126,6 @@ export default function RosterPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Attendance Roster"
-        subtitle="Monthly attendance overview for all employees"
       />
 
       <Card>

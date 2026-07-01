@@ -820,7 +820,7 @@ export default function TrainingPage() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader title="Training Hub" subtitle="Loading your program…" />
+        <PageHeader title="Training Hub" />
         <div className="flex items-center justify-center h-48">
           <div className="w-8 h-8 border-2 border-t-[#0891B2] rounded-full animate-spin"
             style={{ borderColor: "var(--surface-border)", borderTopColor: "#0891B2" }} />

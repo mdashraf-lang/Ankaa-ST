@@ -163,7 +163,6 @@ export default function FacilitiesPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Facilities"
-        subtitle="Book meeting rooms and manage facility reservations"
         actions={
           <Button variant="primary" size="md" onClick={() => setBookingModal(true)}>
             <Plus size={16} />

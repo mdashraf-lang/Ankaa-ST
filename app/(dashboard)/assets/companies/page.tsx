@@ -162,7 +162,6 @@ export default function AssetCompaniesPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Asset Companies"
-        subtitle="Manage the companies that own assets (Ankaa, GIS, Taqa, Wingtech)"
         actions={
           <Button variant="primary" size="md" onClick={openAdd}>
             <Plus size={16} />

@@ -257,7 +257,6 @@ export default function AssetsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Asset Registry"
-        subtitle="Track and manage all company assets"
         actions={
           <div className="flex items-center gap-2">
             <Button variant="secondary" size="md">

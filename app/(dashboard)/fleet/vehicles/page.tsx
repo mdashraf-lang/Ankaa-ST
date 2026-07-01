@@ -260,7 +260,6 @@ export default function VehiclesPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Vehicles"
-        subtitle="Manage fleet vehicles across all company categories"
         actions={
           <div className="flex items-center gap-2">
             <div

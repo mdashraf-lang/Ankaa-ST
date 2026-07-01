@@ -145,7 +145,6 @@ export default function DronesPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Drones"
-        subtitle="Track and manage drone fleet"
         actions={<Button variant="primary" size="md" onClick={openAdd}><Plus size={16} />Add Drone</Button>}
       />
 

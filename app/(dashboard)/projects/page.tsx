@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import * as React from "react"
 import { Plus, Rows, SquaresFour, Briefcase, ListChecks } from "@phosphor-icons/react"
@@ -134,7 +134,6 @@ export default function ProjectsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Projects"
-        subtitle="Manage all company projects across departments"
         actions={
           <div className="flex items-center gap-2">
             <div

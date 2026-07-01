@@ -1097,9 +1097,6 @@ export default function OrgChartPage() {
             <h1 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.3px' }}>
               Organization Chart
             </h1>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
-              Ankaa Science and Technology &mdash; {nodes.length} positions
-            </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {isAdmin && (

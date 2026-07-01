@@ -116,7 +116,6 @@ export default function TenderDetailPage({
     <div className="flex flex-col gap-6">
       <PageHeader
         title={tender?.title ?? "Tender Details"}
-        subtitle={tender?.reference_number}
         breadcrumb={
           <Link
             href="/projects/tenders"

@@ -150,10 +150,7 @@ export default function AdminPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Admin Settings"
-        subtitle="Configure system settings, departments, roles, and access control"
-      />
+      <PageHeader title="Admin Settings" />
 
       <div
         className="rounded-[var(--radius-lg)] border overflow-hidden"

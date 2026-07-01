@@ -149,7 +149,6 @@ export default function UsersPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="User Management"
-        subtitle={`${stats.total} employees across ${new Set(users.map(u => u.department_id).filter(Boolean)).size} departments`}
         actions={
           <Button variant="primary" size="md" onClick={() => setAddOpen(true)}>
             <Plus size={16} />

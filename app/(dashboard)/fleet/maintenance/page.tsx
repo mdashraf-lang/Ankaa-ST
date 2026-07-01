@@ -179,7 +179,6 @@ export default function VehicleMaintenancePage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Vehicle Maintenance"
-        subtitle="Track repairs, servicing and maintenance history for all vehicles"
         actions={<Button variant="primary" size="md" onClick={openAdd}><Plus size={16} />Log Maintenance</Button>}
       />
 

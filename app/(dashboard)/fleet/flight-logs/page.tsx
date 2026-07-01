@@ -206,7 +206,6 @@ export default function FlightLogsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Flight Logs"
-        subtitle="Complete log of all drone missions and flights"
         actions={<Button variant="primary" size="md" onClick={openAdd}><Plus size={16} />Log Flight</Button>}
       />
 

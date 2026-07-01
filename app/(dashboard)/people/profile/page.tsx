@@ -782,7 +782,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex flex-col gap-6 max-w-4xl">
-        <PageHeader title="My Profile" subtitle="Loading your profile…" />
+        <PageHeader title="My Profile" />
         <div className="flex items-center justify-center h-40">
           <div className="w-8 h-8 border-2 border-t-[#0891B2] rounded-full animate-spin"
             style={{ borderColor: "var(--surface-border)", borderTopColor: "#0891B2" }} />
@@ -794,7 +794,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="max-w-4xl">
-        <PageHeader title="My Profile" subtitle="" />
+        <PageHeader title="My Profile" />
         <p className="text-sm mt-4" style={{ color: "var(--text-muted)" }}>
           {error ?? "Profile not found."}
         </p>
@@ -806,10 +806,7 @@ export default function ProfilePage() {
   if (profile.role === "trainee") {
     return (
       <>
-        <PageHeader
-          title="My Profile"
-          subtitle="Trainee Program 2026 · Ankaa S&T"
-        />
+        <PageHeader title="My Profile" />
         {error && (
           <p className="text-sm mb-4 px-4 py-2 rounded-lg" style={{ background: "#FFF0F0", color: "#DC2626" }}>{error}</p>
         )}

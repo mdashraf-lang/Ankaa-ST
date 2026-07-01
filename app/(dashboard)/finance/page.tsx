@@ -462,7 +462,6 @@ export default function FinancePage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Finance"
-        subtitle="Manage expenses, invoices, and cost centers"
         actions={
           <Button variant="primary" size="md" onClick={() => setExpenseModal(true)}>
             <Plus size={16} /> Submit Expense

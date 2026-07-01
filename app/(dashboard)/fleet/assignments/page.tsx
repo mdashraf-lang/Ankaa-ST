@@ -186,7 +186,6 @@ export default function VehicleAssignmentsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Vehicle Assignments"
-        subtitle="Track which driver has which vehicle and assignment history"
         actions={<Button variant="primary" size="md" onClick={openAdd}><Plus size={16} />New Assignment</Button>}
       />
 

@@ -192,7 +192,6 @@ export default function TripsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Trips"
-        subtitle="Log and track all vehicle trips and journeys"
         actions={<Button variant="primary" size="md" onClick={openAdd}><Plus size={16} />Log Trip</Button>}
       />
 

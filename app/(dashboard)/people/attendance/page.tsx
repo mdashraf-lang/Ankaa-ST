@@ -1014,12 +1014,7 @@ export default function AttendancePage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <PageHeader
-          title="Attendance"
-          subtitle={isAdminOrHR
-            ? "Track attendance and manage HIKVISION device integration"
-            : "Track your daily attendance and review your monthly history"}
-        />
+        <PageHeader title="Attendance" />
         {isAdminOrHR && (
           <div className="flex items-center gap-1 p-1 rounded-[var(--radius-lg)] border flex-shrink-0"
             style={{ background: "var(--surface-subtle)", borderColor: "var(--surface-border)" }}>
