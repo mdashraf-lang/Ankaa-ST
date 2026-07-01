@@ -507,7 +507,7 @@ export default function BoardPage() {
     return (
       <div className="flex flex-col gap-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
-          <PageHeader title="Boards" subtitle="Your workspace — create boards for any project or task" />
+          <PageHeader title="Boards" />
           <Button variant="primary" size="sm" onClick={() => { setNewProjName(""); setNewProjDesc(""); setNewProjSearch(""); setNewProjMembers([]); setNewProjModal(true) }}>
             <Plus size={14} /> New Board
           </Button>
