@@ -1113,23 +1113,7 @@ ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id TEXT;
 -- ── project_members created_at (missed in original schema) ──────────────────
 ALTER TABLE project_members ADD COLUMN IF NOT EXISTS created_at TEXT;
 
--- ── Remove auto-seeded default boards (safe no-op if already deleted) ────────
--- Cascades via FK: deletes lists, cards, members for these boards automatically
-DELETE FROM project_members WHERE project_id IN (
-  SELECT id FROM projects WHERE name = 'Ankaa Tasks' AND description = 'Main task board'
-);
-DELETE FROM project_lists WHERE project_id IN (
-  SELECT id FROM projects WHERE name = 'Ankaa Tasks' AND description = 'Main task board'
-);
-DELETE FROM projects WHERE name = 'Ankaa Tasks' AND description = 'Main task board';
-
-DELETE FROM project_members WHERE project_id IN (
-  SELECT id FROM projects WHERE name = 'My Board' AND description = 'Personal tasks'
-);
-DELETE FROM project_lists WHERE project_id IN (
-  SELECT id FROM projects WHERE name = 'My Board' AND description = 'Personal tasks'
-);
-DELETE FROM projects WHERE name = 'My Board' AND description = 'Personal tasks';
+-- (boards are created by employees at runtime — no seeded defaults)
 
 -- ── Invoice file paths + exchange rate ───────────────────────────────────────
 ALTER TABLE invoices ADD COLUMN IF NOT EXISTS invoice_receipt_path TEXT;

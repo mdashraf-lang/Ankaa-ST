@@ -168,29 +168,6 @@ async function main() {
   }
   console.log(`  ✓ ${cc} created`)
 
-  // Sample Kanban board
-  console.log('\nCreating sample task board...')
-  const admin = createdUsers.find(u => u.role === 'admin')
-  if (admin) {
-    const board = await insert('projects', {
-      name: 'Ankaa Tasks', description: 'Main task board', created_by: admin.id
-    })
-    if (board) {
-      await insert('project_members', { project_id: board.id, user_id: admin.id, role: 'owner' })
-      // Add all users as members
-      for (const u of createdUsers.filter(x => x.id !== admin.id)) {
-        await insert('project_members', { project_id: board.id, user_id: u.id, role: 'member' })
-      }
-      const cols = ['Backlog', 'To Do', 'In Progress', 'Review', 'Done']
-      for (let i = 0; i < cols.length; i++) {
-        await insert('project_lists', { project_id: board.id, title: cols[i], position: i })
-      }
-      console.log('  ✓ Board "Ankaa Tasks" with 5 columns and', createdUsers.length, 'members')
-    } else {
-      console.log('  - Board already exists')
-    }
-  }
-
   // Org chart stub
   console.log('\nCreating org chart stub...')
   const ceo = createdUsers.find(u => u.role === 'ceo')
