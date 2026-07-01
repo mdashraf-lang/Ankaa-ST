@@ -14,7 +14,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { formatDate } from "@/lib/utils"
 import { Users, CheckCircle, XCircle } from "@phosphor-icons/react/dist/ssr"
 import { apiFetch } from "@/lib/api"
-import { ALLOWED_ROLES, ROLE_LABELS } from "@/lib/auth"
+import { ALLOWED_ROLES, ROLE_LABELS } from "@/lib/roles"
 import type { Profile } from "@/lib/types"
 import type { Column } from "@/components/ui/data-table"
 
